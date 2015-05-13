@@ -1,0 +1,71 @@
+# Copyright (c) 2014-2015 Felix Arntz
+msgid ""
+msgstr ""
+"Project-Id-Version: wp-upstream 0.0.1\n"
+"Report-Msgid-Bugs-To: http://wordpress.org/plugins/wp-upstream/\n"
+"POT-Creation-Date: 2015-05-13 15:53:18+00:00\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2015-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Felix Arntz <felix-arntz@leaves-and-love.net>\n"
+"Language-Team: Felix Arntz <felix-arntz@leaves-and-love.net>\n"
+"X-Generator: grunt-wp-i18n 0.4.5\n"
+"X-Poedit-Basepath: .\n"
+"X-Poedit-Language: English\n"
+"X-Poedit-Country: UNITED STATES\n"
+"X-Poedit-SourceCharset: uft-8\n"
+"X-Poedit-KeywordsList: __;_e;_x:1,2c;_ex:1,2c;_n:1,2; "
+"_nx:1,2,4c;_n_noop:1,2;_nx_noop:1,2,3c;esc_attr__; esc_html__;esc_attr_e; "
+"esc_html_e;esc_attr_x:1,2c; esc_html_x:1,2c;\n"
+"X-Poedit-Bookmars: \n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Textdomain-Support: yes\n"
+
+#: inc/functions.php:15 inc/functions.php:25 inc/functions.php:35
+msgid "Fatal error with plugin %s"
+msgstr ""
+
+#: inc/functions.php:16
+msgid ""
+"The plugin requires WordPress version %1$s. However, you are using version "
+"%2$s."
+msgstr ""
+
+#: inc/functions.php:17 inc/functions.php:27 inc/functions.php:37
+msgid "The plugin has been deactivated for now."
+msgstr ""
+
+#: inc/functions.php:26
+msgid "The plugin requires PHP version %1$s. However, you are using version %2$s."
+msgstr ""
+
+#: inc/functions.php:36
+msgid ""
+"The PHP SPL functions can not be found. Please ask your hosting provider to "
+"enable them."
+msgstr ""
+
+#. Plugin Name of the plugin/theme
+msgid "WP Upstream"
+msgstr ""
+
+#. Plugin URI of the plugin/theme
+msgid "http://wordpress.org/plugins/wp-upstream/"
+msgstr ""
+
+#. Description of the plugin/theme
+msgid "This plugin handles Git automation in WordPress."
+msgstr ""
+
+#. Author of the plugin/theme
+msgid "Felix Arntz"
+msgstr ""
+
+#. Author URI of the plugin/theme
+msgid "http://leaves-and-love.net"
+msgstr ""
+
+#. Tags of the plugin/theme
+msgid "wordpress, plugin, git, automization"
+msgstr ""
