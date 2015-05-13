@@ -7,10 +7,17 @@
     "wordpress", "plugin", "git", "automization"
   ],
   "author": {
-    "name": "Felix Arntz",
-    "email": "felix-arntz@leaves-and-love.net",
-    "url": "http://leaves-and-love.net"
+    "name": "Usability Dynamics Inc.",
+    "email": "andy.potanin@usabilitydynamics.com",
+    "url": "http://www.usabilitydynamics.com/"
   },
+  "contributors": [
+    {
+      "name": "Felix Arntz",
+      "email": "felix-arntz@leaves-and-love.net",
+      "url": "http://leaves-and-love.net"
+    }
+  ],
   "homepage": "http://wordpress.org/plugins/wp-upstream/",
   "repository": {
     "type": "git",

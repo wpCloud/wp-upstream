@@ -4,8 +4,8 @@ Plugin Name: WP Upstream
 Plugin URI: http://wordpress.org/plugins/wp-upstream/
 Description: This plugin handles Git automation in WordPress.
 Version: 0.0.1
-Author: Felix Arntz
-Author URI: http://leaves-and-love.net
+Author: Usability Dynamics Inc.
+Author URI: http://www.usabilitydynamics.com/
 License: GNU General Public License v2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: wpupstream
@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die();
 }
 
-define( 'WPUPSTREAM_VERSION', '1.0.0' );
+define( 'WPUPSTREAM_VERSION', '0.0.1' );
 define( 'WPUPSTREAM_REQUIRED_PHP', '5.3.0' );
 define( 'WPUPSTREAM_REQUIRED_WP', '4.0' );
 

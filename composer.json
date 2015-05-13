@@ -10,6 +10,12 @@
   "homepage": "http://wordpress.org/plugins/wp-upstream/",
   "authors": [
     {
+      "name": "Usability Dynamics Inc.",
+      "email": "andy.potanin@usabilitydynamics.com",
+      "homepage": "http://www.usabilitydynamics.com/",
+      "role": "Producer"
+    },
+    {
       "name": "Felix Arntz",
       "email": "felix-arntz@leaves-and-love.net",
       "homepage": "http://leaves-and-love.net",
