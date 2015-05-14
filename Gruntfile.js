@@ -16,8 +16,9 @@ module.exports = function(grunt) {
 						'Tags: wordpress, plugin, git, automization\n' +
 						'*/',
 		fileheader: '/**\n' +
-					' * @package WPUpstream\n' +
+					' * @package WPOD\n' +
 					' * @version <%= pkg.version %>\n' +
+					' * @author <%= pkg.author.name %>\n' +
 					' */',
 
 		clean: {
@@ -44,7 +45,7 @@ module.exports = function(grunt) {
 				],
 				overwrite: true,
 				replacements: [{
-					from: /\/\*\*\s+\*\s@package\s[^*]+\s+\*\s@version\s[^*]+\s\*\//,
+					from: /\/\*\*\s+\*\s@package\s[^*]+\s+\*\s@version\s[^*]+\s+\*\s@author\s[^*]+\s\*\//,
 					to: '<%= fileheader %>'
 				}]
 			}
@@ -55,11 +56,11 @@ module.exports = function(grunt) {
 				options: {
 					domainPath: '/languages',
 					exclude: [ 'vendor/.*' ],
-					potComments: 'Copyright (c) 2014-<%= grunt.template.today("yyyy") %> <%= pkg.author.name %>',
+					potComments: 'Copyright (c) <%= grunt.template.today("yyyy") %> <%= pkg.author.name %>',
 					potFilename: 'wpupstream.pot',
 					potHeaders: {
-						'language-team': '<%= pkg.author.name %> <<%= pkg.author.email %>>',
-						'last-translator': '<%= pkg.author.name %> <<%= pkg.author.email %>>',
+						'language-team': '',
+						'last-translator': '',
 						'project-id-version': '<%= pkg.name %> <%= pkg.version %>',
 						'report-msgid-bugs-to': '<%= pkg.homepage %>',
 						'x-generator': 'grunt-wp-i18n 0.4.5',

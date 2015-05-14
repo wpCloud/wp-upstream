@@ -1,7 +1,8 @@
 <?php
 /**
- * @package WPUpstream
+ * @package WPOD
  * @version 0.0.1
+ * @author Usability Dynamics Inc.
  */
 
 function wpupstream_load_textdomain() {
@@ -35,6 +36,15 @@ function wpupstream_display_spl_error_notice() {
 		<p><?php printf( __( 'Fatal error with plugin %s', 'wpupstream' ), '<strong>WP Upstream</strong>' ); ?></p>
 		<p><?php _e( 'The PHP SPL functions can not be found. Please ask your hosting provider to enable them.', 'wpupstream' ); ?></p>
 		<p><?php _e( 'The plugin has been deactivated for now.', 'wpupstream' ); ?></p>
+	</div>
+	<?php
+}
+
+function wpupstream_display_git_warning_notice() {
+	?>
+	<div class="update-nag">
+		<p><?php printf( __( 'Warning for plugin %s', 'wpupstream' ), '<strong>WP Upstream</strong>' ); ?></p>
+		<p><?php _e( 'Either git could not be found or the PHP function <code>exec</code> is not available.', 'wpupstream' ); ?></p>
 	</div>
 	<?php
 }

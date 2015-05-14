@@ -13,8 +13,9 @@ Domain Path: /languages/
 Tags: wordpress, plugin, git, automization
 */
 /**
- * @package WPUpstream
+ * @package WPOD
  * @version 0.0.1
+ * @author Usability Dynamics Inc.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -29,8 +30,8 @@ define( 'WPUPSTREAM_BASENAME', plugin_basename( __FILE__ ) );
 define( 'WPUPSTREAM_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
 define( 'WPUPSTREAM_URL', untrailingslashit( plugin_dir_url( __FILE__ ) ) );
 
-function wpupstream_init() {
-	//TODO: initialize plugin here
+function wpupstream() {
+	return WPUpstream\Plugin::instance();
 }
 
 function wpupstream_maybe_init() {
@@ -50,7 +51,7 @@ function wpupstream_maybe_init() {
 		if ( version_compare( phpversion(), WPUPSTREAM_REQUIRED_PHP ) >= 0 ) {
 			if ( version_compare( $wp_version, WPUPSTREAM_REQUIRED_WP ) >= 0 ) {
 				$running = true;
-				add_action( 'plugins_loaded', 'wpupstream_init' );
+				add_action( 'plugins_loaded', 'wpupstream' );
 			} else {
 				add_action( 'admin_notices', 'wpupstream_display_wpversion_error_notice' );
 			}
