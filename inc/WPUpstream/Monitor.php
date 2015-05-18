@@ -7,6 +7,13 @@
 
 namespace WPUpstream;
 
+/**
+ * This class monitors file changes triggered by WordPress.
+ *
+ * When a file changing action/filter is run, a process is started.
+ * Then, at a specific other action/filter, this process is finished.
+ * The resulting file changes (those that happened during the process) will then be committed with Git.
+ */
 final class Monitor {
 	private static $instance = null;
 
@@ -24,44 +31,28 @@ final class Monitor {
 
 		add_filter( 'upgrader_pre_download', array( $this, 'maybe_start_process' ), 1 );
 		add_action( 'upgrader_process_complete', array( $this, 'maybe_finish_process' ), 100 );
-
-		add_filter( 'install_theme_complete_actions', array( $this, 'check_action' ), 10, 2 );
-		add_filter( 'update_theme_complete_actions', array( $this, 'check_action' ), 10, 2 );
-		add_filter( 'update_bulk_theme_complete_actions', array( $this, 'check_action' ), 10, 2 );
-		add_filter( 'install_plugin_complete_actions', array( $this, 'check_action' ), 10, 2 );
-		add_filter( 'update_plugin_complete_actions', array( $this, 'check_action' ), 10, 2 );
-		add_filter( 'update_bulk_plugins_complete_actions', array( $this, 'check_action' ), 10, 2 );
 	}
 
-	public function check_action( $actions = array(), $data = null ) {
-		if ( $data !== null ) {
-			$filter = current_filter();
-			//var_dump( $filter );
-			//var_dump( $data );
-		}
-
-		return $actions;
-	}
-
-	public function maybe_start_process( $value = null ) {
+	public function maybe_start_process( $ret = null ) {
 		if ( ! $this->is_process_active() ) {
 			$response = $this->git->status();
 			$this->start_process( $response['filechanges'] );
 		}
 
-		return $value;
+		return $ret;
 	}
 
-	public function maybe_finish_process( $value = null ) {
+	public function maybe_finish_process( $ret = null ) {
 		if ( $this->is_process_active() ) {
 			$pre_filechanges = $this->get_pre_filechanges();
 			$actions = $this->get_actions();
 
-			print_r( $pre_filechanges );
-			print_r( $actions );
-
 			$response = $this->git->status();
 			$post_filechanges = $response['filechanges'];
+
+			error_log( print_r( $pre_filechanges, true ) );
+			error_log( print_r( $post_filechanges, true ) );
+			error_log( print_r( $actions, true ) );
 
 			$paths_originally_staged = array();
 			if ( count( $post_filechanges['staged'] ) > 0 ) {
@@ -86,7 +77,7 @@ final class Monitor {
 			}
 		}
 
-		return $value;
+		return $ret;
 	}
 
 	private function start_process( $pre_filechanges = array(), $actions = array() ) {
@@ -117,35 +108,6 @@ final class Monitor {
 		$pre_filechanges_status = delete_transient( 'wpupstream_process_pre_filechanges' );
 		$actions_status = delete_transient( 'wpupstream_process_actions' );
 		return $pre_filechanges_status && $actions_status;
-	}
-
-	private function add_process_pre_filechange( $mode, $path ) {
-		$pre_filechanges = get_transient( 'wpupstream_process_pre_filechanges' );
-		if ( $pre_filechanges !== false ) {
-			$pre_filechanges = json_decode( $pre_filechanges, true );
-			if ( isset( $pre_filechanges[ $mode ] ) ) {
-				$pre_filechanges[ $mode ][] = $path;
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private function add_process_action( $mode, $item_name, $item_type, $new_version = null, $old_version = null ) {
-		$actions = get_transient( 'wpupstream_process_actions' );
-		if ( $actions !== false ) {
-			$actions = json_decode( $actions, true );
-			if ( isset( $actions[ $mode ] ) ) {
-				$actions[ $mode ][] = array(
-					'name'			=> $item_name,
-					'type'			=> $item_type,
-					'version_new'	=> $new_version,
-					'version_old'	=> $old_version,
-				);
-				return true;
-			}
-		}
-		return false;
 	}
 
 	private function get_pre_filechanges() {

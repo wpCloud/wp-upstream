@@ -7,6 +7,12 @@
 
 namespace WPUpstream;
 
+/**
+ * This is the main plugin class.
+ *
+ * If Git could be configured successfully, it initializes the plugin.
+ * Otherwise it will show a warning message in the admin.
+ */
 final class Plugin {
 	private static $instance = null;
 
@@ -19,11 +25,13 @@ final class Plugin {
 
 	private $git = null;
 	private $monitor = null;
+	private $detector = null;
 
 	private function __construct() {
 		$this->git = Git::instance();
 		if ( $this->git->init_config() ) {
 			$this->monitor = Monitor::instance();
+			$this->detector = Detector::instance();
 		} else {
 			add_action( 'admin_notices', 'wpupstream_display_git_warning_notice' );
 		}

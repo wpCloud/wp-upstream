@@ -7,6 +7,9 @@
 
 namespace WPUpstream;
 
+/**
+ * This class contains some static utility functions.
+ */
 final class Util {
 	public static function escape_shell_arg( $arg ) {
 		$os = self::get_os();

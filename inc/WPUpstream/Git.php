@@ -7,6 +7,13 @@
 
 namespace WPUpstream;
 
+/**
+ * This class handles Git operations.
+ *
+ * It can run any Git command, returning an associative array with one key 'raw_output'.
+ * For some Git commands however, this class contains a specific function to parse the response from the console.
+ * In that case, the return array will contain additional keys.
+ */
 final class Git {
 	private static $instance = null;
 
@@ -90,10 +97,12 @@ final class Git {
 						$line = preg_replace( '/\s+/', ' ', $line );
 						$data = array_values( array_filter( explode( ' ', $line ) ) );
 						if ( $mode == 'staged' || $mode == 'unstaged' ) {
-							$data[0] = str_replace( ':', '', $data[0] );
-							if ( in_array( $data[0], array( 'new file', 'modified', 'deleted' ) ) ) {
-								if ( Util::is_path( trailingslashit( $this->config['git_dir'] ) . $data[1] ) ) {
-									$filechanges[ $mode ][] = $data[1];
+							if ( isset( $data[0] ) ) {
+								$data[0] = str_replace( ':', '', $data[0] );
+								if ( in_array( $data[0], array( 'new file', 'modified', 'deleted' ) ) ) {
+									if ( Util::is_path( trailingslashit( $this->config['git_dir'] ) . $data[1] ) ) {
+										$filechanges[ $mode ][] = $data[1];
+									}
 								}
 							}
 						} elseif ( $mode == 'untracked' ) {
