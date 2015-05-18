@@ -100,7 +100,7 @@ final class Git {
 							if ( isset( $data[0] ) ) {
 								$data[0] = str_replace( ':', '', $data[0] );
 								if ( in_array( $data[0], array( 'new file', 'modified', 'deleted' ) ) ) {
-									if ( Util::is_path( trailingslashit( $this->config['git_dir'] ) . $data[1] ) ) {
+									if ( Util::is_path( trailingslashit( $this->config['git_dir'] ) . $data[1], $data[0] == 'deleted' ) ) {
 										$filechanges[ $mode ][] = $data[1];
 									}
 								}

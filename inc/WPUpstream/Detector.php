@@ -27,6 +27,10 @@ final class Detector {
 		add_filter( 'install_theme_complete_actions', array( $this, 'check_action' ), 10, 2 );
 		add_filter( 'install_plugin_complete_actions', array( $this, 'check_action' ), 10, 2 );
 
+		// there is no action or filter for deletion, so we need to use the actions below as a workaround
+		add_action( 'load-themes.php', array( $this, 'check_action' ) );
+		add_action( 'load-plugins.php', array( $this, 'check_action' ) );
+
 		// the following filters do not need to be used since 'upgrader_process_complete' already handles their actions
 		//add_filter( 'update_theme_complete_actions', array( $this, 'check_action' ), 10, 2 );
 		//add_filter( 'update_plugin_complete_actions', array( $this, 'check_action' ), 10, 2 );
@@ -35,34 +39,23 @@ final class Detector {
 	}
 
 	public function check_action( $ret = array(), $data = null ) {
-		if ( $data !== null ) {
-			$filter = current_filter();
+		$filter = current_filter();
 
-			switch ( $filter ) {
-				case 'upgrader_process_complete':
-					if ( is_array( $data ) && count( $data ) > 0 ) {
-						if ( isset( $data['action'] ) && isset( $data['type'] ) ) {
-							$mode = $data['action'];
-							$type = $data['type'];
-							if ( $type == 'core' ) {
-								global $wp_version;
-								$name = __( 'WordPress', 'wpupstream' );
-								$version_new = $wp_version;
+		switch ( $filter ) {
+			case 'upgrader_process_complete':
+				if ( is_array( $data ) && count( $data ) > 0 ) {
+					if ( isset( $data['action'] ) && isset( $data['type'] ) ) {
+						$mode = $data['action'];
+						$type = $data['type'];
+						if ( $type == 'core' ) {
+							global $wp_version;
+							$name = __( 'WordPress', 'wpupstream' );
+							$version_new = $wp_version;
 
-								$this->add_process_action( $mode, $name, $type, $version_new );
-							} elseif ( isset( $data['plugins'] ) || isset( $data['themes'] ) ) {
-								$items = isset( $data['themes'] ) ? $data['themes'] : $data['plugins'];
-								foreach ( $items as $item ) {
-									if ( ! empty( $item ) ) {
-										$item_data = $this->get_data( $item, $type );
-										$name = $this->get_data_field( 'Name', $item_data );
-										$version_new = $this->get_data_field( 'Version', $item_data );
-
-										$this->add_process_action( $mode, $name, $type, $version_new );
-									}
-								}
-							} elseif ( isset( $data['plugin'] ) || isset( $data['theme'] ) ) {
-								$item = isset( $data['theme'] ) ? $data['theme'] : $data['plugin'];
+							$this->add_process_action( $mode, $name, $type, $version_new );
+						} elseif ( isset( $data['plugins'] ) || isset( $data['themes'] ) ) {
+							$items = isset( $data['themes'] ) ? $data['themes'] : $data['plugins'];
+							foreach ( $items as $item ) {
 								if ( ! empty( $item ) ) {
 									$item_data = $this->get_data( $item, $type );
 									$name = $this->get_data_field( 'Name', $item_data );
@@ -71,19 +64,46 @@ final class Detector {
 									$this->add_process_action( $mode, $name, $type, $version_new );
 								}
 							}
+						} elseif ( isset( $data['plugin'] ) || isset( $data['theme'] ) ) {
+							$item = isset( $data['theme'] ) ? $data['theme'] : $data['plugin'];
+							if ( ! empty( $item ) ) {
+								$item_data = $this->get_data( $item, $type );
+								$name = $this->get_data_field( 'Name', $item_data );
+								$version_new = $this->get_data_field( 'Version', $item_data );
+
+								$this->add_process_action( $mode, $name, $type, $version_new );
+							}
 						}
 					}
-					break;
-				case 'install_theme_complete_actions':
-				case 'install_plugin_complete_actions':
+				}
+				break;
+			case 'install_theme_complete_actions':
+			case 'install_plugin_complete_actions':
+				if ( $data !== null ) {
 					$mode = 'install';
 					$type = strpos( $filter, 'theme' ) !== false ? 'theme' : 'plugin';
 					$name = $this->get_data_field( 'Name', $data );
 					$version_new = $this->get_data_field( 'Version', $data );
 					$this->add_process_action( $mode, $name, $type, $version_new );
-					break;
-				default:
-			}
+				}
+				break;
+			case 'load-themes.php':
+				break;
+			case 'load-plugins.php':
+				$mode = 'delete';
+				$type = 'plugin';
+				if ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'delete-selected' && isset( $_REQUEST['verify-delete'] ) && current_user_can( 'delete_plugins' ) ) {
+					$plugins = isset( $_REQUEST['checked'] ) ? (array) $_REQUEST['checked'] : array();
+					$plugins = array_filter( $plugins, 'is_plugin_inactive' );
+					foreach ( $plugins as $plugin ) {
+						$plugin_data = $this->get_data( $plugin, $type );
+						$name = $this->get_data_field( 'Name', $plugin_data );
+
+						$this->add_process_action( $mode, $name, $type );
+					}
+				}
+				break;
+			default:
 		}
 
 		return $ret;

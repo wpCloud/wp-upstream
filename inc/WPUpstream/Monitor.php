@@ -31,9 +31,23 @@ final class Monitor {
 
 		add_filter( 'upgrader_pre_download', array( $this, 'maybe_start_process' ), 1 );
 		add_action( 'upgrader_process_complete', array( $this, 'maybe_finish_process' ), 100 );
+
+		add_action( 'load-plugins.php', array( $this, 'maybe_start_process' ), 1 );
+		add_action( 'load-plugins.php', array( $this, 'maybe_finish_process' ), 100 );
 	}
 
 	public function maybe_start_process( $ret = null ) {
+		$filter = current_filter();
+
+		switch ( $filter ) {
+			case 'load-plugins.php':
+				if ( ! ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'delete-selected' && isset( $_REQUEST['verify-delete'] ) && current_user_can( 'delete_plugins' ) ) ) {
+					return $ret;
+				}
+				break;
+			default;
+		}
+
 		if ( ! $this->is_process_active() ) {
 			$response = $this->git->status();
 			$this->start_process( $response['filechanges'] );
@@ -43,16 +57,23 @@ final class Monitor {
 	}
 
 	public function maybe_finish_process( $ret = null ) {
+		$filter = current_filter();
+
+		switch ( $filter ) {
+			case 'load-plugins.php':
+				if ( ! ( isset( $_REQUEST['deleted'] ) && $_REQUEST['deleted'] == 'true' && current_user_can( 'delete_plugins' ) ) ) {
+					return $ret;
+				}
+				break;
+			default;
+		}
+
 		if ( $this->is_process_active() ) {
 			$pre_filechanges = $this->get_pre_filechanges();
 			$actions = $this->get_actions();
 
 			$response = $this->git->status();
 			$post_filechanges = $response['filechanges'];
-
-			error_log( print_r( $pre_filechanges, true ) );
-			error_log( print_r( $post_filechanges, true ) );
-			error_log( print_r( $actions, true ) );
 
 			$paths_originally_staged = array();
 			if ( count( $post_filechanges['staged'] ) > 0 ) {
@@ -64,13 +85,21 @@ final class Monitor {
 
 			$paths_to_add = array_merge( array_diff( $post_filechanges['unstaged'], $pre_filechanges['unstaged'] ), array_diff( $post_filechanges['untracked'], $pre_filechanges['untracked'] ) );
 
+			error_log( print_r( $paths_to_add, true ) );
+			error_log( print_r( $actions, true ) );
+
 			$this->finish_process();
 
-			foreach ( $paths_to_add as $path ) {
-				//$this->git->add( $path );
-			}
+			if ( count( $paths_to_add ) > 0 ) {
+				foreach ( $paths_to_add as $path ) {
+					//$this->git->add( $path );
+				}
 
-			//$this->git->commit( '-m', '"a commit message"' );
+				$commit_message = $this->build_commit_message( $actions );
+				error_log( $commit_message );
+
+				//$this->git->commit( '-m', '"a commit message"' );
+			}
 
 			foreach ( $paths_originally_staged as $path ) {
 				//$this->git->add( $path );
@@ -78,6 +107,41 @@ final class Monitor {
 		}
 
 		return $ret;
+	}
+
+	private function build_commit_message( $actions, $auto_update = false ) {
+		$initiator = __( 'auto-update', 'wpupstream' );
+		if ( ! $auto_update ) {
+			$uid = get_current_user_id();
+			if ( $uid > 0 ) {
+				$udata = get_userdata( $uid );
+				$initiator = $udata->user_nicename;
+			} else {
+				$initiator = __( 'unknown user', 'wpupstream' );
+			}
+		}
+
+		$action_string = '';
+		$action_data = array();
+
+		if ( count( $actions['install'] ) > 0 ) {
+			$action_string = __( '%1$s installed %2$s', 'wpupstream' );
+			foreach ( $actions['install'] as $item ) {
+				$action_data[] = sprintf( __( '%1$s %3$s', 'wpupstream' ), $item['name'], $item['type'], $item['version_new'] );
+			}
+		} elseif ( count( $actions['update'] ) > 0 ) {
+			$action_string = __( '%1$s updated %2$s', 'wpupstream' );
+			foreach ( $actions['update'] as $item ) {
+				$action_data[] = sprintf( __( '%1$s to %3$s', 'wpupstream' ), $item['name'], $item['type'], $item['version_new'] );
+			}
+		} elseif ( count( $actions['delete'] ) > 0 ) {
+			$action_string = __( '%1$s deleted %2$s', 'wpupstream' );
+			foreach ( $actions['delete'] as $item ) {
+				$action_data[] = sprintf( __( '%1$s', 'wpupstream' ), $item['name'], $item['type'] );
+			}
+		}
+
+		return sprintf( $action_string, $initiator, implode( ', ', $action_data ) );
 	}
 
 	private function start_process( $pre_filechanges = array(), $actions = array() ) {

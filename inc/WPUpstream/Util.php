@@ -19,8 +19,13 @@ final class Util {
 		return escapeshellarg( $arg );
 	}
 
-	public static function is_path( $path ) {
+	public static function is_path( $path, $deleted = false ) {
 		if ( ! empty( $path ) ) {
+			// always return true for a deleted path since we cannot check if it still exists
+			// TODO: add a regex validation instead
+			if ( $deleted ) {
+				return true;
+			}
 			if ( is_dir( $path ) || file_exists( $path ) ) {
 				return true;
 			}
