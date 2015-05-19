@@ -88,6 +88,17 @@ final class Detector {
 				}
 				break;
 			case 'load-themes.php':
+				$mode = 'delete';
+				$type = 'theme';
+				if ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'delete' && current_user_can( 'delete_themes' ) ) {
+					if ( isset( $_GET['stylesheet'] ) ) {
+						$theme = $_GET['stylesheet'];
+						$theme_data = $this->get_data( $theme, $type, 'local' );
+						$name = $this->get_data_field( 'Name', $theme_data );
+
+						$this->add_process_action( $mode, $name, $type );
+					}
+				}
 				break;
 			case 'load-plugins.php':
 				$mode = 'delete';
@@ -96,7 +107,7 @@ final class Detector {
 					$plugins = isset( $_REQUEST['checked'] ) ? (array) $_REQUEST['checked'] : array();
 					$plugins = array_filter( $plugins, 'is_plugin_inactive' );
 					foreach ( $plugins as $plugin ) {
-						$plugin_data = $this->get_data( $plugin, $type );
+						$plugin_data = $this->get_data( $plugin, $type, 'local' );
 						$name = $this->get_data_field( 'Name', $plugin_data );
 
 						$this->add_process_action( $mode, $name, $type );
