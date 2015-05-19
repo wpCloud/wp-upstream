@@ -122,7 +122,7 @@ final class Monitor {
 				$commit_message = $this->build_commit_message( $actions, $auto_update );
 
 				if ( ! empty( $commit_message ) ) {
-					$this->git->commit( '-m', '"$commit_message"' );
+					$this->git->commit( '-m', $commit_message );
 					if ( defined( 'WPUPSTREAM_AUTOMATIC_PUSH' ) && WPUPSTREAM_AUTOMATIC_PUSH ) {
 						$this->git->push();
 					}
