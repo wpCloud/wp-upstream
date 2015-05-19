@@ -131,6 +131,16 @@ final class Git {
 		exec( "$path $command $args 2>&1", $this->current_output, $this->current_status );
 		chdir( $this->config['current_dir'] );
 
+		// log all Git activities
+		$original_log_errors = ini_get( 'log_errors' );
+		$original_error_log = ini_get( 'error_log' );
+		ini_set( 'log_errors', 1 );
+		ini_set( 'error_log', trailingslashit( WP_CONTENT_DIR ) . 'wpupstream-git.log' );
+		error_log( "$path $command $args" );
+		error_log( print_r( $this->current_output, true ) );
+		ini_set( 'log_errors', $original_log_errors );
+		ini_set( 'error_log', $original_error_log );
+
 		return $this->format_response();
 	}
 
