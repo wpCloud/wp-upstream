@@ -1,7 +1,7 @@
 <?php
 /**
  * @package WPOD
- * @version 0.0.1
+ * @version 0.1.0
  * @author Usability Dynamics Inc.
  */
 
@@ -132,14 +132,16 @@ final class Git {
 		chdir( $this->config['current_dir'] );
 
 		// log all Git activities
-		$original_log_errors = ini_get( 'log_errors' );
-		$original_error_log = ini_get( 'error_log' );
-		ini_set( 'log_errors', 1 );
-		ini_set( 'error_log', trailingslashit( WP_CONTENT_DIR ) . 'wpupstream-git.log' );
-		error_log( "$path $command $args" );
-		error_log( print_r( $this->current_output, true ) );
-		ini_set( 'log_errors', $original_log_errors );
-		ini_set( 'error_log', $original_error_log );
+		if ( defined( 'WPUPSTREAM_DEBUG' ) && WPUPSTREAM_DEBUG ) {
+			$original_log_errors = ini_get( 'log_errors' );
+			$original_error_log = ini_get( 'error_log' );
+			ini_set( 'log_errors', 1 );
+			ini_set( 'error_log', trailingslashit( WP_CONTENT_DIR ) . 'wpupstream-git.log' );
+			error_log( "$path $command $args" );
+			error_log( print_r( $this->current_output, true ) );
+			ini_set( 'log_errors', $original_log_errors );
+			ini_set( 'error_log', $original_error_log );
+		}
 
 		return $this->format_response();
 	}

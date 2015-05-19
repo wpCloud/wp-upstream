@@ -1,7 +1,7 @@
 {
   "name": "wp-upstream",
   "pluginName": "WP Upstream",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "This plugin handles Git automation in WordPress.",
   "keywords": [
     "wordpress", "plugin", "git", "automization"
