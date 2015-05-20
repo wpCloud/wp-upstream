@@ -3,7 +3,7 @@
 Plugin Name: WP Upstream
 Plugin URI: http://wordpress.org/plugins/wp-upstream/
 Description: This plugin handles Git automation in WordPress.
-Version: 0.1.0
+Version: 0.1.1
 Author: Usability Dynamics Inc.
 Author URI: http://www.usabilitydynamics.com/
 License: GNU General Public License v2
@@ -14,7 +14,7 @@ Tags: wordpress, plugin, git, automization
 */
 /**
  * @package WPOD
- * @version 0.1.0
+ * @version 0.1.1
  * @author Usability Dynamics Inc.
  */
 
@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die();
 }
 
-define( 'WPUPSTREAM_VERSION', '0.1.0' );
+define( 'WPUPSTREAM_VERSION', '0.1.1' );
 define( 'WPUPSTREAM_REQUIRED_PHP', '5.3.0' );
 define( 'WPUPSTREAM_REQUIRED_WP', '4.0' );
 

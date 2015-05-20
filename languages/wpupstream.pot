@@ -1,9 +1,9 @@
 # Copyright (c) 2015 Usability Dynamics Inc.
 msgid ""
 msgstr ""
-"Project-Id-Version: wp-upstream 0.1.0\n"
+"Project-Id-Version: wp-upstream 0.1.1\n"
 "Report-Msgid-Bugs-To: http://wordpress.org/plugins/wp-upstream/\n"
-"POT-Creation-Date: 2015-05-19 18:53:54+00:00\n"
+"POT-Creation-Date: 2015-05-20 13:27:51+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -22,39 +22,39 @@ msgstr ""
 "X-Poedit-SearchPath-0: .\n"
 "X-Textdomain-Support: yes\n"
 
-#: inc/WPUpstream/Detector.php:52
+#: inc/WPUpstream/Detector.php:61
 msgid "WordPress"
 msgstr ""
 
-#: inc/WPUpstream/Monitor.php:187
+#: inc/WPUpstream/Monitor.php:272
 msgid "auto-update"
 msgstr ""
 
-#: inc/WPUpstream/Monitor.php:194
+#: inc/WPUpstream/Monitor.php:279
 msgid "unknown user"
 msgstr ""
 
-#: inc/WPUpstream/Monitor.php:202
+#: inc/WPUpstream/Monitor.php:287
 msgid "%1$s installed %2$s"
 msgstr ""
 
-#: inc/WPUpstream/Monitor.php:204
+#: inc/WPUpstream/Monitor.php:289
 msgid "%1$s %3$s"
 msgstr ""
 
-#: inc/WPUpstream/Monitor.php:207
+#: inc/WPUpstream/Monitor.php:292
 msgid "%1$s updated %2$s"
 msgstr ""
 
-#: inc/WPUpstream/Monitor.php:209
+#: inc/WPUpstream/Monitor.php:294
 msgid "%1$s to %3$s"
 msgstr ""
 
-#: inc/WPUpstream/Monitor.php:212
+#: inc/WPUpstream/Monitor.php:297
 msgid "%1$s deleted %2$s"
 msgstr ""
 
-#: inc/WPUpstream/Monitor.php:214
+#: inc/WPUpstream/Monitor.php:299
 msgid "%1$s"
 msgstr ""
 
