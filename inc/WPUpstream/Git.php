@@ -32,6 +32,11 @@ final class Git {
 
 	}
 
+	/**
+	 * Initializes the Git configuration.
+	 *
+	 * @return boolean true if Git was successfully configured, false if Git could not be configured/found
+	 */
 	public function init_config() {
 		$this->config = array(
 			'exec_available'	=> function_exists( 'exec' ),
@@ -50,6 +55,27 @@ final class Git {
 		return $this->config['ready'];
 	}
 
+	/**
+	 * Magic isset method.
+	 *
+	 * @param string $name the key to check the existance for
+	 * @return boolean true if the key exists, otherwise false
+	 */
+	public function __isset( $name ) {
+		if ( property_exists( $this, $name ) ) {
+			return true;
+		} elseif ( isset( $this->config[ $name ] ) ) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Magic get method.
+	 *
+	 * @param string $name key to get the value for
+	 * @return mixed the value or false if it could not be found
+	 */
 	public function __get( $name ) {
 		if ( property_exists( $this, $name ) ) {
 			return $this->$name;
@@ -59,6 +85,17 @@ final class Git {
 		return false;
 	}
 
+	/**
+	 * Magic call method.
+	 *
+	 * It is used to execute Git commands.
+	 * If the class has a method with the same name as the command, this function is called.
+	 * Otherwise the default function for executing Git commands is called.
+	 *
+	 * @param string $name name of the function to call
+	 * @param array $args arguments of the function as an array
+	 * @return mixed results of the function or false if it could not be found
+	 */
 	public function __call( $name, $args = array() ) {
 		$blacklist = array( 'exec', 'init_config', '__get', '__call' );
 		if ( ! in_array( $name, $blacklist ) ) {
@@ -71,6 +108,13 @@ final class Git {
 		return false;
 	}
 
+	/**
+	 * Runs 'git status' and detects the filechanges properly.
+	 *
+	 * @uses WPUpstream\Git::exec()
+	 * @param array $args arguments for the command
+	 * @return array results array containing a 'filechanges' key and a 'raw_output' key
+	 */
 	private function status( $args = array() ) {
 		$this->exec( 'status', $args );
 
@@ -119,6 +163,13 @@ final class Git {
 		return $this->format_response( compact( 'filechanges' ) );
 	}
 
+	/**
+	 * Runs any Git command.
+	 *
+	 * @param string $command name of the command to run
+	 * @param array $args arguments for the command
+	 * @return array results array containing a 'raw_output' key
+	 */
 	private function exec( $command, $args = array() ) {
 		$path = Util::escape_shell_arg( $this->config['git_path'] );
 		$command = Util::escape_shell_arg( $command );
@@ -146,10 +197,25 @@ final class Git {
 		return $this->format_response();
 	}
 
+	/**
+	 * Formats the response of a Git command.
+	 *
+	 * The function basically adds a 'raw_output' key to the response array.
+	 *
+	 * @param array $response the response array to return
+	 * @return array the response array containing an additional 'raw_output' key with the basic output as an array of lines
+	 */
 	private function format_response( $response = array() ) {
 		return array_merge( $response, array( 'raw_output' => $this->current_output ) );
 	}
 
+	/**
+	 * Detects the directory where the Git repository is located.
+	 *
+	 * This function is used for configuration.
+	 *
+	 * @return string path to the directory or an empty string if the directory could not be detected
+	 */
 	private function get_git_dir() {
 		$path = $this->config['git_path'];
 		if ( $path && $this->config['exec_available'] ) {

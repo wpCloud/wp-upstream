@@ -38,6 +38,15 @@ final class Detector {
 		//add_filter( 'update_bulk_plugins_complete_actions', array( $this, 'check_action' ), 10, 2 );
 	}
 
+	/**
+	 * Checks if the current filter handles something that should be dealt with as a process action.
+	 *
+	 * Depending on which filter the function is hooked into, it does different things.
+	 *
+	 * @param mixed $ret compatibility for filters; if the function is hooked into a filter, it needs to return the first parameter
+	 * @param mixed $data maybe the action or filter provides additional data that we can use
+	 * @return mixed same like the $ret parameter
+	 */
 	public function check_action( $ret = array(), $data = null ) {
 		$filter = current_filter();
 
@@ -120,6 +129,16 @@ final class Detector {
 		return $ret;
 	}
 
+	/**
+	 * Adds a new action to the active process.
+	 *
+	 * @param string $mode either 'install', 'update' or 'delete'
+	 * @param string $item_name the name of the item that has changed
+	 * @param string $item_type the type of the item that has changed (either 'core', 'plugin' or 'theme')
+	 * @param string|null $new_version new version if available
+	 * @param string|null $old_version old version if available
+	 * @return boolean true if the action was added to the active process successfully, otherwise false
+	 */
 	private function add_process_action( $mode, $item_name, $item_type, $new_version = null, $old_version = null ) {
 		$actions = get_transient( 'wpupstream_process_actions' );
 		if ( $actions !== false ) {
@@ -137,6 +156,16 @@ final class Detector {
 		return false;
 	}
 
+	/**
+	 * Gets data for a plugin or theme.
+	 *
+	 * By default, plugin information is retrieved locally while theme information is retrieved by using the wordpress.org API.
+	 *
+	 * @param string $item slug of the plugin or theme
+	 * @param string $type either 'plugin' or 'theme'
+	 * @param string $mode either 'local' or 'api' (or empty for using the default)
+	 * @return array|object|false the plugin/theme data or false if not available
+	 */
 	private function get_data( $item, $type = 'plugin', $mode = '' ) {
 		if ( ! empty( $item ) ) {
 			switch ( $type ) {
@@ -156,6 +185,15 @@ final class Detector {
 		return false;
 	}
 
+	/**
+	 * Gets a field value from a plugin/theme data object or array.
+	 *
+	 * This function automatically checks in what format the data is stored and then gets the value.
+	 *
+	 * @param string $field field name to retrieve the value for
+	 * @param object|array $data the data from which to retrieve the value
+	 * @return string the field value
+	 */
 	private function get_data_field( $field, $data ) {
 		if ( is_array( $data ) ) {
 			if ( isset( $data[ $field ] ) ) {

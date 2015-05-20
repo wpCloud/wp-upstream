@@ -38,8 +38,20 @@ final class Monitor {
 
 		add_action( 'load-plugins.php', array( $this, 'maybe_start_process' ), 1 );
 		add_action( 'load-plugins.php', array( $this, 'maybe_finish_process' ), 100 );
+
+		// ensures that a broken process does not prevent the plugin from working
+		add_action( 'admin_init', array( $this, 'cleanup_old_process' ) );
 	}
 
+	/**
+	 * Starts a new process if there isn't anyone active yet.
+	 * Furthermore a few other dependencies might be checked according to the current filter.
+	 *
+	 * Before starting a process, the function runs 'git status' to see if any files have been modified before the process starts.
+	 *
+	 * @param mixed $ret compatibility for filters; if the function is hooked into a filter, it needs to return the first parameter
+	 * @return mixed same like the $ret parameter
+	 */
 	public function maybe_start_process( $ret = null ) {
 		$filter = current_filter();
 
@@ -57,12 +69,12 @@ final class Monitor {
 			default;
 		}
 
-		// if we're doing an auto update, disable the default finishing hook temporarily since 'automatic_updates_complete' is used for this instead
-		if ( get_option( 'auto_updater.lock' ) ) {
-			remove_action( 'upgrader_process_complete', array( $this, 'maybe_finish_process' ), 100 );
-		}
-
 		if ( ! $this->is_process_active() ) {
+			// if we're doing an auto update, disable the default finishing hook temporarily since 'automatic_updates_complete' is used for this instead
+			if ( get_option( 'auto_updater.lock' ) ) {
+				remove_action( 'upgrader_process_complete', array( $this, 'maybe_finish_process' ), 100 );
+			}
+
 			$response = $this->git->status();
 			$this->start_process( $response['filechanges'] );
 		}
@@ -70,6 +82,16 @@ final class Monitor {
 		return $ret;
 	}
 
+	/**
+	 * Finishes a process if there is one active.
+	 * Furthermore a few other dependencies might be checked according to the current filter.
+	 *
+	 * While finishing a process, the function runs 'git status' to retrieve the filechanges and compares those to the initial filechanges, only committing what is actually new.
+	 * It then commits (and optionally pushes) the changes.
+	 *
+	 * @param mixed $ret compatibility for filters; if the function is hooked into a filter, it needs to return the first parameter
+	 * @return mixed same like the $ret parameter
+	 */
 	public function maybe_finish_process( $ret = null ) {
 		$filter = current_filter();
 
@@ -137,6 +159,24 @@ final class Monitor {
 		return $ret;
 	}
 
+	/**
+	 * This function automatically finishes a process if it has been active for more than 5 minutes.
+	 * By doing that, it ensures that, if for some reason a process was never finished, the plugin can still continue to work.
+	 */
+	public function cleanup_old_process() {
+		$start_time = $this->get_start_time();
+		if ( $start_time !== false && $start_time + 300 < current_time( 'timestamp' ) ) {
+			$this->finish_process();
+		}
+	}
+
+	/**
+	 * Starts a new process.
+	 *
+	 * @param array $pre_filechanges results of the 'git status' command run immediately before starting the process
+	 * @param array $actions actions that are gonna be performed during the process
+	 * @return boolean true if the process could be started successfully, otherwise false
+	 */
 	private function start_process( $pre_filechanges = array(), $actions = array() ) {
 		$pre_filechanges = wp_parse_args( $pre_filechanges, array(
 			'staged'		=> array(),
@@ -149,24 +189,51 @@ final class Monitor {
 			'delete'		=> array(),
 		) );
 
+		$start_time_status = set_transient( 'wpupstream_process_start_time', current_time( 'timestamp' ) );
 		$pre_filechanges_status = set_transient( 'wpupstream_process_pre_filechanges', json_encode( $pre_filechanges ) );
 		$actions_status = set_transient( 'wpupstream_process_actions', json_encode( $actions ) );
-		return $pre_filechanges_status && $actions_status;
+		return $start_time_status && $pre_filechanges_status && $actions_status;
 	}
 
+	/**
+	 * Checks if a process is currently active.
+	 *
+	 * @return boolean true if a process is active, otherwise false
+	 */
 	private function is_process_active() {
+		$start_time = get_transient( 'wpupstream_process_start_time' );
 		$pre_filechanges = get_transient( 'wpupstream_process_pre_filechanges' );
 		$actions = get_transient( 'wpupstream_process_actions' );
 
-		return $pre_filechanges !== false && $actions !== false;
+		return $start_time !== false && $pre_filechanges !== false && $actions !== false;
 	}
 
+	/**
+	 * Finishes a process.
+	 *
+	 * @return boolean true if the process could be finished successfully, otherwise false (if no process has been active before, it will return false too)
+	 */
 	private function finish_process() {
+		$start_time_status = delete_transient( 'wpupstream_process_start_time' );
 		$pre_filechanges_status = delete_transient( 'wpupstream_process_pre_filechanges' );
 		$actions_status = delete_transient( 'wpupstream_process_actions' );
-		return $pre_filechanges_status && $actions_status;
+		return $start_time_status && $pre_filechanges_status && $actions_status;
 	}
 
+	/**
+	 * Gets the start time of the active process.
+	 *
+	 * @return int|false timestamp start time or false if no process is active
+	 */
+	private function get_start_time() {
+		return get_transient( 'wpupstream_process_start_time' );
+	}
+
+	/**
+	 * Gets the filechanges made before starting the active process.
+	 *
+	 * @return array|false filechanges array or false if no process is active
+	 */
 	private function get_pre_filechanges() {
 		$pre_filechanges = get_transient( 'wpupstream_process_pre_filechanges' );
 		if ( $pre_filechanges !== false ) {
@@ -175,6 +242,11 @@ final class Monitor {
 		return false;
 	}
 
+	/**
+	 * Gets the actions performed during the active process.
+	 *
+	 * @return array|false actions array or false if no process is active
+	 */
 	private function get_actions() {
 		$actions = get_transient( 'wpupstream_process_actions' );
 		if ( $actions !== false ) {
@@ -183,6 +255,19 @@ final class Monitor {
 		return false;
 	}
 
+	/**
+	 * Builds a commit message.
+	 *
+	 * If the changes were not performed by an auto-update, the current user's name is used as the initiator.
+	 *
+	 * Example results:
+	 * * "admin installed WordPress SEO 2.0.1"
+	 * * "auto-update updated WordPress to 4.0"
+	 *
+	 * @param array $actions the actions to build the commit message for
+	 * @param boolean $auto_update whether the actions were performed by a WordPress auto-update
+	 * @return string the commit message
+	 */
 	private function build_commit_message( $actions, $auto_update = false ) {
 		$initiator = __( 'auto-update', 'wpupstream' );
 		if ( ! $auto_update ) {
