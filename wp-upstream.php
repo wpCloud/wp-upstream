@@ -1,16 +1,19 @@
 <?php
-/*
-Plugin Name: WP Upstream
-Plugin URI: http://wordpress.org/plugins/wp-upstream/
-Description: This plugin handles Git automation in WordPress.
-Version: 0.1.1
-Author: Usability Dynamics Inc.
-Author URI: http://www.usabilitydynamics.com/
-License: GNU General Public License v2
-License URI: http://www.gnu.org/licenses/gpl-2.0.html
-Text Domain: wpupstream
-Domain Path: /languages/
-Tags: wordpress, plugin, git, automization
+/**
+ * Plugin Name: WP Upstream
+ * Plugin URI: http://wordpress.org/plugins/wp-upstream/
+ * Description: This plugin handles Git automation in WordPress.
+ * Version: 0.1.1
+ * Author: Usability Dynamics Inc.
+ * Author URI: http://www.usabilitydynamics.com/
+ * License: GNU General Public License v2
+ * License URI: http://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain: wpupstream
+ * Domain Path: /languages/
+ * Tags: wordpress, plugin, git, automization
+ * GitHub Plugin URI: wpCloud/wp-upstream
+ * GitHub Branch: v0.1
+
 */
 /**
  * @package WPOD
