@@ -13,7 +13,7 @@
  * Tags: wordpress, plugin, git, automization
  * GitHub Plugin URI: wpCloud/wp-upstream
  * GitHub Branch: v0.1
-
+ * Network: True
 */
 /**
  * @package WPOD
