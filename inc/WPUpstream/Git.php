@@ -41,7 +41,7 @@ final class Git {
 		$this->config = array(
 			'exec_available'	=> function_exists( 'exec' ),
 			'current_dir'		=> getcwd(),
-			'git_path'			=> defined( 'WPUPSTREAM_GIT_PATH' ) ? WPUPSTREAM_GIT_PATH : 'git',
+			'git_path'			=> defined( 'WP_UPSTREAM_GIT_PATH' ) ? WP_UPSTREAM_GIT_PATH : 'git',
 		);
 
 		$this->config['git_dir'] = $this->get_git_dir();
@@ -183,7 +183,7 @@ final class Git {
 		chdir( $this->config['current_dir'] );
 
 		// log all Git activities
-		if ( defined( 'WPUPSTREAM_DEBUG' ) && WPUPSTREAM_DEBUG ) {
+		if ( defined( 'WP_UPSTREAM_DEBUG' ) && WP_UPSTREAM_DEBUG ) {
 			$original_log_errors = ini_get( 'log_errors' );
 			$original_error_log = ini_get( 'error_log' );
 			ini_set( 'log_errors', 1 );

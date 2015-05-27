@@ -145,7 +145,7 @@ final class Monitor {
 
 				if ( ! empty( $commit_message ) ) {
 					$this->git->commit( '-m', $commit_message );
-					if ( defined( 'WPUPSTREAM_AUTOMATIC_PUSH' ) && WPUPSTREAM_AUTOMATIC_PUSH ) {
+					if ( defined( 'WP_UPSTREAM_AUTOMATIC_PUSH' ) && WP_UPSTREAM_AUTOMATIC_PUSH ) {
 						$this->git->push();
 					}
 				}

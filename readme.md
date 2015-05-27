@@ -13,6 +13,6 @@ Options
 
 The current version does not have a settings interface, but there are a few constants to use:
 
-* `WPUPSTREAM_GIT_PATH` - define this if you need to override the relative path to the git command (the default is just `git`)
-* `WPUPSTREAM_AUTOMATIC_PUSH` - define this with boolean `true` if you always want your commits to be pushed immediately (if you do this, make sure to set a remote repository properly; the plugin currently does not check if a push is successful or not)
-* `WPUPSTREAM_DEBUG` - define this with boolean `false` if you don't want a log of Git commands to be created
+* `WP_UPSTREAM_GIT_PATH` - define this if you need to override the relative path to the git command (the default is just `git`)
+* `WP_UPSTREAM_AUTOMATIC_PUSH` - define this with boolean `true` if you always want your commits to be pushed immediately (if you do this, make sure to set a remote repository properly; the plugin currently does not check if a push is successful or not)
+* `WP_UPSTREAM_DEBUG` - define this with boolean `false` if you don't want a log of Git commands to be created
