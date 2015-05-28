@@ -1,5 +1,6 @@
 #### 0.1.2
 * Fixed author and committer data for git.
+* Fixed a bug where deleted files were not added to a commit.
 * Changed all constant names to follow WP_UPSTREAM prefix.
 * Added admin bar status notice.
 * Added changes.md file.
