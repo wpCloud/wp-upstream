@@ -138,7 +138,7 @@ final class Monitor {
 
 			if ( count( $paths_to_add ) > 0 ) {
 				foreach ( $paths_to_add as $path ) {
-					$this->git->add( $path );
+					$this->git->add( $path, '-A' );
 				}
 
 				$commit_message = $this->build_commit_message( $actions, $auto_update );
@@ -154,7 +154,7 @@ final class Monitor {
 			}
 
 			foreach ( $paths_originally_staged as $path ) {
-				$this->git->add( $path );
+				$this->git->add( $path, '-A' );
 			}
 		}
 
