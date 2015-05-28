@@ -187,7 +187,7 @@ final class Git {
 		$command = Util::escape_shell_arg( $command );
 		$args = join( ' ', array_map( array( '\WPUpstream\Util', 'escape_shell_arg' ), $args ) );
 
-		$this->current_output = '';
+		$this->current_output = array();
 		$this->current_status = 0;
 
 		chdir( $this->config['git_dir'] );
@@ -200,8 +200,16 @@ final class Git {
 			$original_error_log = ini_get( 'error_log' );
 			ini_set( 'log_errors', 1 );
 			ini_set( 'error_log', trailingslashit( WP_CONTENT_DIR ) . 'wpupstream-git.log' );
-			error_log( "$path $command $args" );
-			error_log( print_r( $this->current_output, true ) );
+			error_log( 'Command: ' . "$path $command $args" );
+			if ( $env_vars ) {
+				error_log( 'Environment vars: ' . print_r( $env_vars, true ) );
+			}
+			if ( $this->current_output ) {
+				error_log( 'Output: ' . print_r( $this->current_output, true ) );
+			}
+			if ( $this->current_status ) {
+				error_log( 'Status: ' . $this->current_status );
+			}
 			ini_set( 'log_errors', $original_log_errors );
 			ini_set( 'error_log', $original_error_log );
 		}
