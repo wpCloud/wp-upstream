@@ -143,8 +143,10 @@ final class Monitor {
 
 				$commit_message = $this->build_commit_message( $actions, $auto_update );
 
+				$commit_env_vars = $this->get_author_env_vars( $auto_update );
+
 				if ( ! empty( $commit_message ) ) {
-					$this->git->commit( '-m', $commit_message );
+					$this->git->commit( '-m', $commit_message, $commit_env_vars );
 					if ( defined( 'WP_UPSTREAM_AUTOMATIC_PUSH' ) && WP_UPSTREAM_AUTOMATIC_PUSH ) {
 						$this->git->push();
 					}
@@ -253,6 +255,45 @@ final class Monitor {
 			return json_decode( $actions, true );
 		}
 		return false;
+	}
+
+	/**
+	 * Gets the environment variables to set for a commit.
+	 *
+	 * If the changes were not performed by an auto-update, the current user's name and email are used.
+	 *
+	 * @param boolean $auto_update whether the actions were performed by a WordPress auto-update
+	 * @return array array of environment variables and their values
+	 */
+	private function get_author_env_vars( $auto_update = false ) {
+		$author_name = __( 'unknown user', 'wpupstream' );
+		$author_email = '';
+
+		if ( $auto_update ) {
+			$author_name = __( 'WordPress', 'wpupstream' );
+		} else {
+			$uid = get_current_user_id();
+			if ( $uid > 0 ) {
+				$udata = get_userdata( $uid );
+				$author_name = $udata->user_nicename;
+				$author_email = $udata->user_email;
+			}
+		}
+
+		if ( empty( $author_email ) ) {
+			if ( is_multisite() ) {
+				$author_email = get_site_option( 'admin_email' );
+			} else {
+				$author_email = get_option( 'admin_email' );
+			}
+		}
+
+		return array(
+			'GIT_AUTHOR_NAME'		=> $author_name,
+			'GIT_AUTHOR_EMAIL'		=> $author_email,
+			'GIT_COMMITTER_NAME'	=> $author_name,
+			'GIT_COMMITTER_EMAIL'	=> $author_email,
+		);
 	}
 
 	/**

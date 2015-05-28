@@ -171,14 +171,26 @@ final class Detector {
 			switch ( $type ) {
 				case 'theme':
 					if ( $mode == 'local' ) {
-						return wp_get_theme( $item );
+						if ( function_exists( 'wp_get_theme' ) ) {
+							return wp_get_theme( $item );
+						}
+					} else {
+						if ( function_exists( 'themes_api' ) ) {
+							return themes_api( 'theme_information', array( 'slug' => $item, 'fields' => array( 'sections' => false, 'tags' => false ) ) );
+						}
 					}
-					return themes_api( 'theme_information', array( 'slug' => $item, 'fields' => array( 'sections' => false, 'tags' => false ) ) );
+					break;
 				case 'plugin':
 					if ( $mode == 'api' ) {
-						return plugins_api( 'plugin_information', array( 'slug' => $item, 'fields' => array( 'banners' => false, 'reviews' => false ) ) );
+						if ( function_exists( 'plugins_api' ) ) {
+							return plugins_api( 'plugin_information', array( 'slug' => $item, 'fields' => array( 'banners' => false, 'reviews' => false ) ) );
+						}
+					} else {
+						if ( function_exists( 'get_plugin_data' ) ) {
+							return get_plugin_data( WP_PLUGIN_DIR . '/' . $item, false, true );
+						}
 					}
-					return get_plugin_data( WP_PLUGIN_DIR . '/' . $item, false, true );
+					break;
 				default:
 			}
 		}

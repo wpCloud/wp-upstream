@@ -98,7 +98,7 @@ final class Git {
 	 */
 	public function __call( $name, $args = array() ) {
 		$blacklist = array( 'exec', 'init_config', '__get', '__call' );
-		if ( ! in_array( $name, $blacklist ) ) {
+		if ( ! empty( $name ) && ! in_array( $name, $blacklist ) ) {
 			if ( method_exists( $this, $name ) ) {
 				return call_user_func_array( array( $this, $name ), $args );
 			} else {
@@ -112,7 +112,7 @@ final class Git {
 	 * Runs 'git status' and detects the filechanges properly.
 	 *
 	 * @uses WPUpstream\Git::exec()
-	 * @param array $args arguments for the command
+	 * @param array $args arguments for the command (the last element can optionally be an array of environment variables)
 	 * @return array results array containing a 'filechanges' key and a 'raw_output' key
 	 */
 	private function status( $args = array() ) {
@@ -167,10 +167,22 @@ final class Git {
 	 * Runs any Git command.
 	 *
 	 * @param string $command name of the command to run
-	 * @param array $args arguments for the command
+	 * @param array $args arguments for the command (the last element can optionally be an array of environment variables)
 	 * @return array results array containing a 'raw_output' key
 	 */
 	private function exec( $command, $args = array() ) {
+		$env_vars = array();
+		if ( count( $args ) > 0 ) {
+			if ( is_array( $args[ count( $args ) - 1 ] ) ) {
+				$env_vars = array_pop( $args );
+			}
+		}
+
+		$env_vars_string = '';
+		foreach ( $env_vars as $env_var => $value ) {
+			$env_vars_string .= $env_var . '="' . $value . '" ';
+		}
+
 		$path = Util::escape_shell_arg( $this->config['git_path'] );
 		$command = Util::escape_shell_arg( $command );
 		$args = join( ' ', array_map( array( '\WPUpstream\Util', 'escape_shell_arg' ), $args ) );
@@ -179,7 +191,7 @@ final class Git {
 		$this->current_status = 0;
 
 		chdir( $this->config['git_dir'] );
-		exec( "$path $command $args 2>&1", $this->current_output, $this->current_status );
+		exec( "$env_vars_string$path $command $args 2>&1", $this->current_output, $this->current_status );
 		chdir( $this->config['current_dir'] );
 
 		// log all Git activities
