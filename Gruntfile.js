@@ -14,9 +14,12 @@ module.exports = function(grunt) {
 						'Text Domain: wpupstream\n' +
 						'Domain Path: /languages/\n' +
 						'Tags: wordpress, plugin, git, automization\n' +
+						'GitHub Plugin URI: wpCloud/wp-upstream\n' +
+						'GitHub Branch: v0.1\n' +
+						'Network: True\n' +
 						'*/',
 		fileheader: '/**\n' +
-					' * @package WPOD\n' +
+					' * @package WPUpstream\n' +
 					' * @version <%= pkg.version %>\n' +
 					' * @author <%= pkg.author.name %>\n' +
 					' */',

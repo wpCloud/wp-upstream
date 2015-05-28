@@ -1,9 +1,9 @@
 # Copyright (c) 2015 Usability Dynamics Inc.
 msgid ""
 msgstr ""
-"Project-Id-Version: wp-upstream 0.1.1\n"
+"Project-Id-Version: wp-upstream 0.1.2\n"
 "Report-Msgid-Bugs-To: http://wordpress.org/plugins/wp-upstream/\n"
-"POT-Creation-Date: 2015-05-20 13:27:51+00:00\n"
+"POT-Creation-Date: 2015-05-28 09:03:03+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -58,11 +58,11 @@ msgstr ""
 msgid "%1$s"
 msgstr ""
 
-#: inc/WPUpstream/Plugin.php:41 inc/WPUpstream/Plugin.php:45
+#: inc/WPUpstream/Plugin.php:52 inc/WPUpstream/Plugin.php:56
 msgid "Cheatin&#8217; huh?"
 msgstr ""
 
-#: inc/functions.php:16 inc/functions.php:26 inc/functions.php:36
+#: inc/functions.php:16 inc/functions.php:25 inc/functions.php:34
 msgid "Fatal error with plugin %s"
 msgstr ""
 
@@ -72,28 +72,32 @@ msgid ""
 "%2$s."
 msgstr ""
 
-#: inc/functions.php:18 inc/functions.php:28 inc/functions.php:38
-msgid "The plugin has been deactivated for now."
-msgstr ""
-
-#: inc/functions.php:27
+#: inc/functions.php:26
 msgid "The plugin requires PHP version %1$s. However, you are using version %2$s."
 msgstr ""
 
-#: inc/functions.php:37
+#: inc/functions.php:35
 msgid ""
 "The PHP SPL functions can not be found. Please ask your hosting provider to "
 "enable them."
 msgstr ""
 
-#: inc/functions.php:46
+#: inc/functions.php:43
 msgid "Warning for plugin %s"
 msgstr ""
 
-#: inc/functions.php:47
+#: inc/functions.php:44
 msgid ""
 "Either git could not be found or the PHP function <code>exec</code> is not "
 "available."
+msgstr ""
+
+#: inc/functions.php:68
+msgid "%s is not running."
+msgstr ""
+
+#: inc/functions.php:71
+msgid "%s is running."
 msgstr ""
 
 #. Plugin Name of the plugin/theme

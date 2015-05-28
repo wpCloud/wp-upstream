@@ -1,7 +1,7 @@
 <?php
 /**
- * @package WPOD
- * @version 0.1.1
+ * @package WPUpstream
+ * @version 0.1.2
  * @author Usability Dynamics Inc.
  */
 
@@ -23,18 +23,29 @@ final class Plugin {
 		return self::$instance;
 	}
 
+	public static function has_instance() {
+		return self::$instance !== null;
+	}
+
 	private $git = null;
 	private $monitor = null;
 	private $detector = null;
 
+	private $status = false;
+
 	private function __construct() {
 		$this->git = Git::instance();
 		if ( $this->git->init_config() ) {
+			$this->status = true;
 			$this->monitor = Monitor::instance();
 			$this->detector = Detector::instance();
 		} else {
 			add_action( 'admin_notices', 'wpupstream_display_git_warning_notice' );
 		}
+	}
+
+	public function get_status() {
+		return $this->status;
 	}
 
 	private function __clone() {
