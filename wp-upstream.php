@@ -48,12 +48,13 @@ function wpupstream_maybe_init() {
 
 	require_once WP_UPSTREAM_PATH . '/inc/functions.php';
 
+  	// Admin bar status indicator.
+	add_action( 'admin_head', 'wpupstream_add_inline_style' );
+  	add_action( 'admin_bar_menu', 'wpupstream_admin_bar_menu', 10 );
+
 	$running = false;
 
 	add_action( 'plugins_loaded', 'wpupstream_load_textdomain', 1 );
-
-  	// Admin bar status indicator.
-  	add_action( 'admin_bar_menu', 'wpupstream_admin_bar_menu', 10 );
 
   	if ( function_exists( 'spl_autoload_register' ) ) {
 

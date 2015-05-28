@@ -66,17 +66,57 @@ function wpupstream_admin_bar_menu( $wp_admin_bar ) {
 	}
 
 	$status = __( '%s is not running.', 'wpupstream' );
-	$color = '#dd3d36';
+	$class = 'error';
 	if ( class_exists( 'WPUpstream\Plugin' ) && WPUpstream\Plugin::has_instance() && WPUpstream\Plugin::instance()->get_status() ) {
 		$status = __( '%s is running.', 'wpupstream' );
-		$color = '#eeeeee';
-		//$color = '#7ad03a';
+		$class = '';
 	}
 
-	$wp_admin_bar->add_menu( array(
+	$wp_admin_bar->add_node( array(
 		'id'		=> 'wp-upstream',
 		'parent'	=> 'top-secondary',
-		'title'		=> '<span style="color:' . $color . ';">' . sprintf( $status, 'WP Upstream' ) . '</span>',
-		'href'		=> '#'
+		'title'		=> '<span class="ab-icon dashicons dashicons-upload ' . $class . '"></span>',
 	));
+
+	$wp_admin_bar->add_node( array(
+		'id'		=> 'wp-upstream-status',
+		'parent'	=> 'wp-upstream',
+		'title'		=> '<span class="' . $class . '">' . sprintf( $status, 'WP Upstream' ) . '</span>',
+	) );
+}
+
+function wpupstream_add_inline_style() {
+	if ( ! is_super_admin() ) {
+		return;
+	}
+
+	?>
+	<style type="text/css">
+		#wpadminbar .ab-icon.success,
+		#wpadminbar .ab-icon.success:before,
+		#wpadminbar .ab-item.success,
+		#wpadminbar .ab-item.success:before,
+		#wpadminbar .ab-item > .success,
+		#wpadminbar .hover .ab-icon.success,
+		#wpadminbar .hover .ab-icon.success:before,
+		#wpadminbar .hover .ab-item.success,
+		#wpadminbar .hover .ab-item.success:before,
+		#wpadminbar .hover .ab-item > .success {
+			color: #7ad03a;
+		}
+
+		#wpadminbar .ab-icon.error,
+		#wpadminbar .ab-icon.error:before,
+		#wpadminbar .ab-item.error,
+		#wpadminbar .ab-item.error:before,
+		#wpadminbar .ab-item > .error,
+		#wpadminbar .hover .ab-icon.error,
+		#wpadminbar .hover .ab-icon.error:before,
+		#wpadminbar .hover .ab-item.error,
+		#wpadminbar .hover .ab-item.error:before,
+		#wpadminbar .hover .ab-item > .error {
+			color: #dd3d36;
+		}
+	</style>
+	<?php
 }

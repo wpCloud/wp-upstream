@@ -1,7 +1,8 @@
 #### 0.1.2
+* Fixed author and committer data for git.
 * Changed all constant names to follow WP_UPSTREAM prefix.
-* Added changes.md file.
 * Added admin bar status notice.
+* Added changes.md file.
 * Made plugin network only.
 * Removed PHP 5.2 autoloader.
 
