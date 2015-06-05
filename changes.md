@@ -1,3 +1,9 @@
+#### 0.1.3
+* for commits, the display name of the user is now used
+* enhanced the admin bar menu of the plugin
+* added a class representing a commit and additional related functions
+* improved stability by making dynamic Git handler more flexible
+
 #### 0.1.2
 * Fixed author and committer data for git.
 * Fixed a bug where deleted files were not added to a commit.
