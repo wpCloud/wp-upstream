@@ -33,6 +33,7 @@ final class Monitor {
 		add_action( 'upgrader_process_complete', array( $this, 'maybe_finish_process' ), 100 );
 		add_action( 'automatic_updates_complete', array( $this, 'maybe_finish_process' ), 100 );
 
+		//TODO: theme deletion on Multisite not always working
 		add_action( 'load-themes.php', array( $this, 'maybe_start_process' ), 1 );
 		add_action( 'load-themes.php', array( $this, 'maybe_finish_process' ), 100 );
 

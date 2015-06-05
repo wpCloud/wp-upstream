@@ -42,9 +42,14 @@ final class Git {
 			'exec_available'	=> function_exists( 'exec' ),
 			'current_dir'		=> getcwd(),
 			'git_path'			=> defined( 'WP_UPSTREAM_GIT_PATH' ) ? WP_UPSTREAM_GIT_PATH : 'git',
+			'remote_name'		=> defined( 'WP_UPSTREAM_REMOTE_NAME' ) ? WP_UPSTREAM_REMOTE_NAME : 'origin',
 		);
 
 		$this->config['git_dir'] = $this->get_git_dir();
+
+		$this->config['remote_url'] = $this->get_remote_url();
+
+		$this->config['branch_name'] = $this->get_branch_name();
 
 		if ( count( array_filter( $this->config ) ) < count( $this->config ) ) {
 			$this->config['ready'] = false;
@@ -97,12 +102,30 @@ final class Git {
 	 * @return mixed results of the function or false if it could not be found
 	 */
 	public function __call( $name, $args = array() ) {
-		$blacklist = array( 'exec', 'init_config', '__get', '__call' );
+		$blacklist = array( 'exec', 'init_config', 'format_response', 'get_git_dir', 'get_remote_url', 'get_branch_name', '__get', '__call' );
+
 		if ( ! empty( $name ) && ! in_array( $name, $blacklist ) ) {
-			if ( method_exists( $this, $name ) ) {
-				return call_user_func_array( array( $this, $name ), $args );
+			$env_vars = array();
+			if ( isset( $args[0] ) && is_array( $args[0] ) && isset( $args[0][0] ) ) {
+				if ( isset( $args[1] ) && is_array( $args[1] ) && count( $args[1] ) > 0 ) {
+					$env_vars = $args[1];
+				}
+				$args = $args[0];
 			} else {
-				return $this->exec( $name, $args );
+				for ( $i = 0; $i < count( $args ); $i++ ) {
+					if ( is_array( $args[ $i ] ) ) {
+						if ( count( $args[ $i ] ) > 0 ) {
+							$env_vars = $args[ $i ];
+						}
+						unset( $args[ $i ] );
+					}
+				}
+				$args = array_values( $args );
+			}
+			if ( method_exists( $this, $name ) ) {
+				return call_user_func( array( $this, $name ), $args, $env_vars );
+			} else {
+				return $this->exec( $name, $args, $env_vars );
 			}
 		}
 		return false;
@@ -115,8 +138,8 @@ final class Git {
 	 * @param array $args arguments for the command (the last element can optionally be an array of environment variables)
 	 * @return array results array containing a 'filechanges' key and a 'raw_output' key
 	 */
-	private function status( $args = array() ) {
-		$this->exec( 'status', $args );
+	private function status( $args = array(), $env_vars = array() ) {
+		$this->exec( 'status', $args, $env_vars );
 
 		$filechanges = array(
 			'staged'	=> array(),
@@ -164,19 +187,66 @@ final class Git {
 	}
 
 	/**
+	 * Runs 'git log' and generates an array of commits from it.
+	 *
+	 * @uses WPUpstream\Git::exec()
+	 * @param array $args arguments for the command (the last element can optionally be an array of environment variables)
+	 * @return array results array containing a 'commits' key and a 'raw_output' key
+	 */
+	private function log( $args = array(), $env_vars = array() ) {
+		$index = -1;
+		for ( $i = 0; $i < count( $args ); $i++ ) {
+			if ( strpos( $args[ $i ], '--pretty=' ) === 0 ) {
+				$index = $i;
+				break;
+			}
+		}
+
+		if ( $index > -1 ) {
+			$args[ $index ] = '--pretty=format:' . Commit::get_formatstring();
+		} else {
+			$args[] = '--pretty=format:' . Commit::get_formatstring();
+		}
+
+		$this->exec( 'log', $args, $env_vars );
+
+		$commits = array();
+
+		$current_commit = array();
+
+		if ( is_array( $this->current_output ) ) {
+			foreach ( $this->current_output as $index => $line ) {
+				$line = trim( $line );
+				if ( ! empty( $line ) ) {
+					$key = explode( ':', $line );
+					if ( isset( $key[0] ) ) {
+						$key = $key[0];
+						$value = str_replace( $key . ':', '', $line );
+
+						$current_commit[ $key ] = $value;
+					}
+				}
+				if ( empty( $line ) || $index == count( $this->current_output ) - 1 ) {
+					if ( isset( $current_commit['commit_hash'] ) ) {
+						$commits[ $current_commit['commit_hash'] ] = $current_commit;
+						$current_commit = array();
+					}
+				}
+			}
+		}
+
+		return $this->format_response( compact( 'commits' ) );
+	}
+
+	/**
 	 * Runs any Git command.
 	 *
 	 * @param string $command name of the command to run
 	 * @param array $args arguments for the command (the last element can optionally be an array of environment variables)
 	 * @return array results array containing a 'raw_output' key
 	 */
-	private function exec( $command, $args = array() ) {
-		$env_vars = array();
-		if ( count( $args ) > 0 ) {
-			if ( is_array( $args[ count( $args ) - 1 ] ) ) {
-				$env_vars = array_pop( $args );
-			}
-		}
+	private function exec( $command, $args = array(), $env_vars = array() ) {
+		$command = str_replace( '_', '-', $command );
 
 		$env_vars_string = '';
 		foreach ( $env_vars as $env_var => $value ) {
@@ -193,6 +263,14 @@ final class Git {
 		chdir( $this->config['git_dir'] );
 		exec( "$env_vars_string$path $command $args 2>&1", $this->current_output, $this->current_status );
 		chdir( $this->config['current_dir'] );
+
+		if ( ! is_array( $this->current_output ) ) {
+			if ( $this->current_output ) {
+				$this->current_output = array( $this->current_output );
+			} else {
+				$this->current_output = array();
+			}
+		}
 
 		// log all Git activities
 		if ( defined( 'WP_UPSTREAM_DEBUG' ) && WP_UPSTREAM_DEBUG ) {
@@ -246,6 +324,41 @@ final class Git {
 			if ( $git_dir ) {
 				return $git_dir;
 			}
+		}
+		return '';
+	}
+
+	/**
+	 * Returns the URL of the remote (if git is available).
+	 *
+	 * This function is used for configuration.
+	 *
+	 * @return string URL to the remote or an empty string if it could not be detected
+	 */
+	private function get_remote_url() {
+		if ( $this->config['git_dir'] ) {
+			$response = $this->__call( 'config', array( '--get', 'remote.origin.url' ) );
+			if ( isset( $response['raw_output'][0] ) ) {
+				return trim( $response['raw_output'][0] );
+			}
+		}
+		return '';
+	}
+
+	/**
+	 * Detects the current branch we're in (if git is available).
+	 *
+	 * This function is used for configuration.
+	 *
+	 * @return string name of the current branch or an empty string if it could not be detected
+	 */
+	private function get_branch_name() {
+		$dir = $this->config['git_dir'];
+		if ( $dir && is_dir( trailingslashit( $dir ) . '.git' ) && is_file( trailingslashit( $dir ) . '.git/HEAD' ) ) {
+			$filecontents = file( trailingslashit( $dir ) . '.git/HEAD', FILE_USE_INCLUDE_PATH );
+			$line = $filecontents[0];
+			$line = explode( '/', $line, 3 );
+			return trim( $line[2] );
 		}
 		return '';
 	}
