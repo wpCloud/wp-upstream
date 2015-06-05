@@ -275,7 +275,7 @@ final class Monitor {
 			$uid = get_current_user_id();
 			if ( $uid > 0 ) {
 				$udata = get_userdata( $uid );
-				$author_name = $udata->user_nicename;
+				$author_name = $udata->display_name;
 				$author_email = $udata->user_email;
 			}
 		}
@@ -315,7 +315,7 @@ final class Monitor {
 			$uid = get_current_user_id();
 			if ( $uid > 0 ) {
 				$udata = get_userdata( $uid );
-				$initiator = $udata->user_nicename;
+				$initiator = $udata->display_name;
 			} else {
 				$initiator = __( 'unknown user', 'wpupstream' );
 			}
