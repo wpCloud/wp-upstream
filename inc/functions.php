@@ -55,76 +55,12 @@ function wpupstream_deactivate() {
 	}
 }
 
-/**
- * Show indicator if enabled but broken or whatever else is critical.
- *
- * @param $wp_admin_bar
- */
 function wpupstream_admin_bar_menu( $wp_admin_bar ) {
 	if ( ! is_super_admin() || ! $wp_admin_bar ) {
 		return;
 	}
 
-	$global_class = '';
-	if ( class_exists( 'WPUpstream\Plugin' ) && WPUpstream\Plugin::has_instance() && WPUpstream\Plugin::instance()->get_status() ) {
-		if ( \WPUpstream\Util::has_uncommitted_changes() ) {
-			$global_class = 'warning';
-			$wp_admin_bar->add_node( array(
-				'id'		=> 'wp-upstream-uncommitted-changes',
-				'parent'	=> 'wp-upstream',
-				'title'		=> '<span class="warning">' . __( 'The repository contains uncommitted changes.', 'wpupstream' ) . '</span>',
-			) );
-		}
-
-		if ( \WPUpstream\Util::has_unpushed_commits() ) {
-			$global_class = 'warning';
-			$wp_admin_bar->add_node( array(
-				'id'		=> 'wp-upstream-unpushed-commits',
-				'parent'	=> 'wp-upstream',
-				'title'		=> '<span class="warning">' . __( 'The repository contains unpushed commits.', 'wpupstream' ) . '</span>',
-			) );
-		}
-
-		$wp_admin_bar->add_node( array(
-			'id'		=> 'wp-upstream-repository-branch',
-			'parent'	=> 'wp-upstream',
-			'title'		=> sprintf( __( 'Branch: %s', 'wpupstream' ), \WPUpstream\Util::get_current_branch() ),
-		) );
-
-		$wp_admin_bar->add_node( array(
-			'id'		=> 'wp-upstream-repository-version',
-			'parent'	=> 'wp-upstream',
-			'title'		=> sprintf( __( 'Version: %s', 'wpupstream' ), \WPUpstream\Util::get_repository_version( 'short' ) ),
-		) );
-
-		$commits = \WPUpstream\Util::get_commits( array( 'number' => 1 ) );
-		if ( isset( $commits[0] ) ) {
-			$latest_commit = $commits[0];
-
-			$href = $latest_commit->is_pushed() ? $latest_commit->commit_url : '';
-
-			$wp_admin_bar->add_node( array(
-				'id'		=> 'wp-upstream-repository-latest-commit',
-				'parent'	=> 'wp-upstream',
-				'title'		=> sprintf( __( 'Latest Commit: %s', 'wpupstream' ), $latest_commit->commit_message ),
-				'href'		=> $href,
-				'meta'		=> array( 'target' => '_blank' ),
-			) );
-		}
-	} else {
-		$global_class = 'error';
-		$wp_admin_bar->add_node( array(
-			'id'		=> 'wp-upstream-status',
-			'parent'	=> 'wp-upstream',
-			'title'		=> '<span class="error">' . sprintf( __( '%s is not running.', 'wpupstream' ), 'WP Upstream' ) . '</span>',
-		) );
-	}
-
-	$wp_admin_bar->add_node( array(
-		'id'		=> 'wp-upstream',
-		'parent'	=> 'top-secondary',
-		'title'		=> '<span class="ab-icon dashicons dashicons-upload ' . $global_class . '"></span>',
-	));
+	$admin_bar_menu = WP_Upstream_Admin_Bar_Menu::instance( $wp_admin_bar );
 }
 
 function wpupstream_add_inline_style() {
@@ -132,46 +68,174 @@ function wpupstream_add_inline_style() {
 		return;
 	}
 
-	?>
-	<style type="text/css">
-		#wpadminbar .ab-icon.success,
-		#wpadminbar .ab-icon.success:before,
-		#wpadminbar .ab-item.success,
-		#wpadminbar .ab-item.success:before,
-		#wpadminbar .ab-item > .success,
-		#wpadminbar .hover .ab-icon.success,
-		#wpadminbar .hover .ab-icon.success:before,
-		#wpadminbar .hover .ab-item.success,
-		#wpadminbar .hover .ab-item.success:before,
-		#wpadminbar .hover .ab-item > .success {
-			color: #7ad03a;
+	WP_Upstream_Admin_Bar_Menu::print_styles();
+}
+
+if ( ! class_exists( 'WP_Upstream_Admin_Bar_Menu' ) ) {
+
+	class WP_Upstream_Admin_Bar_Menu {
+
+		private static $instance = null;
+
+		public static function instance( $wp_admin_bar ) {
+			if ( self::$instance === null ) {
+				self::$instance = new self( $wp_admin_bar );
+			}
+			return self::$instance;
 		}
 
-		#wpadminbar .ab-icon.warning,
-		#wpadminbar .ab-icon.warning:before,
-		#wpadminbar .ab-item.warning,
-		#wpadminbar .ab-item.warning:before,
-		#wpadminbar .ab-item > .warning,
-		#wpadminbar .hover .ab-icon.warning,
-		#wpadminbar .hover .ab-icon.warning:before,
-		#wpadminbar .hover .ab-item.warning,
-		#wpadminbar .hover .ab-item.warning:before,
-		#wpadminbar .hover .ab-item > .warning {
-			color: #ffba00;
+		private $admin_bar = null;
+
+		private $global_status = '';
+
+		private function __construct( $wp_admin_bar ) {
+			$this->admin_bar = $wp_admin_bar;
+
+			if ( class_exists( 'WPUpstream\Plugin' ) && WPUpstream\Plugin::has_instance() && WPUpstream\Plugin::instance()->get_status() ) {
+				if ( \WPUpstream\Util::has_uncommitted_changes() ) {
+					$this->add_item( array(
+						'id'		=> 'wp-upstream-uncommitted-changes',
+						'parent'	=> 'wp-upstream',
+						'title'		=> __( 'The repository contains uncommitted changes.', 'wpupstream' ),
+					), 'warning' );
+				}
+
+				if ( \WPUpstream\Util::has_unpushed_commits() ) {
+					$this->add_item( array(
+						'id'		=> 'wp-upstream-unpushed-commits',
+						'parent'	=> 'wp-upstream',
+						'title'		=> __( 'The repository contains unpushed commits.', 'wpupstream' ),
+					), 'warning' );
+				}
+
+				$this->add_item( array(
+					'id'		=> 'wp-upstream-repository-branch',
+					'parent'	=> 'wp-upstream',
+					'title'		=> sprintf( __( 'Branch: %s', 'wpupstream' ), \WPUpstream\Util::get_current_branch() ),
+				) );
+
+				$this->add_item( array(
+					'id'		=> 'wp-upstream-repository-version',
+					'parent'	=> 'wp-upstream',
+					'title'		=> sprintf( __( 'Version: %s', 'wpupstream' ), \WPUpstream\Util::get_repository_version( 'short' ) ),
+				) );
+
+				$commits = \WPUpstream\Util::get_commits( array( 'number' => 1 ) );
+				if ( isset( $commits[0] ) ) {
+					$latest_commit = $commits[0];
+
+					$href = $latest_commit->is_pushed() ? $latest_commit->commit_url : '';
+
+					$this->add_item( array(
+						'id'		=> 'wp-upstream-repository-latest-commit',
+						'parent'	=> 'wp-upstream',
+						'title'		=> sprintf( __( 'Latest Commit: %s', 'wpupstream' ), $latest_commit->commit_message ),
+						'href'		=> $href,
+						'meta'		=> array( 'target' => '_blank' ),
+					) );
+				}
+			} else {
+				$this->add_item( array(
+					'id'		=> 'wp-upstream-status',
+					'parent'	=> 'wp-upstream',
+					'title'		=> sprintf( __( '%s is not running.', 'wpupstream' ), 'WP Upstream' ),
+				), 'error' );
+			}
+
+			$this->add_menu();
 		}
 
-		#wpadminbar .ab-icon.error,
-		#wpadminbar .ab-icon.error:before,
-		#wpadminbar .ab-item.error,
-		#wpadminbar .ab-item.error:before,
-		#wpadminbar .ab-item > .error,
-		#wpadminbar .hover .ab-icon.error,
-		#wpadminbar .hover .ab-icon.error:before,
-		#wpadminbar .hover .ab-item.error,
-		#wpadminbar .hover .ab-item.error:before,
-		#wpadminbar .hover .ab-item > .error {
-			color: #dd3d36;
+		private function add_menu() {
+			$this->admin_bar->add_node( array(
+				'id'		=> 'wp-upstream',
+				'parent'	=> 'top-secondary',
+				'title'		=> $this->status_wrap( '<span class="ab-icon dashicons dashicons-upload"></span>', $this->global_status ),
+			));
 		}
-	</style>
-	<?php
+
+		private function add_item( $args, $status = '' ) {
+			$args = wp_parse_args( $args, array(
+				'parent'	=> 'wp-upstream',
+			) );
+
+			if ( isset( $args['title'] ) ) {
+				if ( strlen( $args['title'] ) > 60 ) {
+					$args['title'] = substr( $args['title'], 0, 60 ) . '...';
+				}
+				$args['title'] = $this->status_wrap( $args['title'], $status );
+			}
+
+			$this->admin_bar->add_node( $args );
+
+			if ( ! empty( $status ) ) {
+				$this->global_status = $status;
+			}
+		}
+
+		private function status_wrap( $text, $status = '' ) {
+			$status = $this->sanitize_status_class( $status );
+
+			if ( ! empty( $status ) ) {
+				if ( strpos( $text, '<span class="' ) === 0 ) {
+					return str_replace( '<span class="', '<span class="' . $status . ' ', $text );
+				}
+				return '<span class="' . $status . '">' . $text . '</span>';
+			}
+			return $text;
+		}
+
+		private function sanitize_status_class( $status ) {
+			if ( ! empty( $status ) ) {
+				return 'wp-upstream-' . $status;
+			}
+			return '';
+		}
+
+		public static function print_styles() {
+			?>
+			<style type="text/css">
+				#wpadminbar .ab-icon.wp-upstream-success,
+				#wpadminbar .ab-icon.wp-upstream-success:before,
+				#wpadminbar .ab-item.wp-upstream-success,
+				#wpadminbar .ab-item.wp-upstream-success:before,
+				#wpadminbar .ab-item > .wp-upstream-success,
+				#wpadminbar .hover .ab-icon.wp-upstream-success,
+				#wpadminbar .hover .ab-icon.wp-upstream-success:before,
+				#wpadminbar .hover .ab-item.wp-upstream-success,
+				#wpadminbar .hover .ab-item.wp-upstream-success:before,
+				#wpadminbar .hover .ab-item > .wp-upstream-success {
+					color: #7ad03a;
+				}
+
+				#wpadminbar .ab-icon.wp-upstream-warning,
+				#wpadminbar .ab-icon.wp-upstream-warning:before,
+				#wpadminbar .ab-item.wp-upstream-warning,
+				#wpadminbar .ab-item.wp-upstream-warning:before,
+				#wpadminbar .ab-item > .wp-upstream-warning,
+				#wpadminbar .hover .ab-icon.wp-upstream-warning,
+				#wpadminbar .hover .ab-icon.wp-upstream-warning:before,
+				#wpadminbar .hover .ab-item.wp-upstream-warning,
+				#wpadminbar .hover .ab-item.wp-upstream-warning:before,
+				#wpadminbar .hover .ab-item > .wp-upstream-warning {
+					color: #ffba00;
+				}
+
+				#wpadminbar .ab-icon.wp-upstream-error,
+				#wpadminbar .ab-icon.wp-upstream-error:before,
+				#wpadminbar .ab-item.wp-upstream-error,
+				#wpadminbar .ab-item.wp-upstream-error:before,
+				#wpadminbar .ab-item > .wp-upstream-error,
+				#wpadminbar .hover .ab-icon.wp-upstream-error,
+				#wpadminbar .hover .ab-icon.wp-upstream-error:before,
+				#wpadminbar .hover .ab-item.wp-upstream-error,
+				#wpadminbar .hover .ab-item.wp-upstream-error:before,
+				#wpadminbar .hover .ab-item > .wp-upstream-error {
+					color: #dd3d36;
+				}
+			</style>
+			<?php
+		}
+
+	}
+
 }
