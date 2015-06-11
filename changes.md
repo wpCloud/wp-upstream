@@ -1,3 +1,9 @@
+#### 0.1.4
+* fixed theme deletion on multisite
+* improved compatibility with multisite and WP CLI
+* fixed admin bar menu design
+* admin bar menu now has its own class
+
 #### 0.1.3
 * for commits, the display name of the user is now used
 * enhanced the admin bar menu of the plugin
