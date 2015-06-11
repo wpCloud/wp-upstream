@@ -90,7 +90,6 @@ final class Detector {
 				break;
 			case 'install_theme_complete_actions':
 			case 'install_plugin_complete_actions':
-				error_log( print_r( $data, true ) );
 				if ( $data !== null ) {
 					$mode = 'install';
 					$type = strpos( $filter, 'theme' ) !== false ? 'theme' : 'plugin';
