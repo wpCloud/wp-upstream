@@ -200,6 +200,70 @@ final class Util {
 	}
 
 	/**
+	 * Sets a transient.
+	 *
+	 * If multisite, then site transient will be used.
+	 *
+	 * @param string $transient name of the transient
+	 * @param mixed $value value of the transient
+	 * @param integer $expiration expiration in seconds
+	 * @return bool status of the operation
+	 */
+	public static function set_transient( $transient, $value, $expiration = 0 ) {
+		if ( is_object( $value ) || is_array( $value ) ) {
+			$value = json_encode( $value );
+		}
+
+		if ( is_multisite() ) {
+			return set_site_transient( $transient, $value, $expiration );
+		}
+		return set_transient( $transient, $value, $expiration );
+	}
+
+	/**
+	 * Gets a transient.
+	 *
+	 * If multisite, then site transient will be used.
+	 *
+	 * @param string $transient name of the transient
+	 * @param string $mode type of the transient value ('default', 'array' or 'string')
+	 * @return mixed value of the transient or false
+	 */
+	public static function get_transient( $transient, $mode = 'default' ) {
+		$value = false;
+		if ( is_multisite() ) {
+			$value = get_site_transient( $transient );
+		} else {
+			$value = get_transient( $transient );
+		}
+
+		if ( $value !== false ) {
+			if ( $mode == 'array' ) {
+				$value = json_decode( $value, true );
+			} elseif ( $mode == 'object' ) {
+				$value = json_decode( $value );
+			}
+		}
+
+		return $value;
+	}
+
+	/**
+	 * Deletes a transient.
+	 *
+	 * If multisite, then site transient will be used.
+	 *
+	 * @param string $transient name of the transient
+	 * @return bool status of the operation
+	 */
+	public static function delete_transient( $transient ) {
+		if ( is_multisite() ) {
+			return delete_site_transient( $transient );
+		}
+		return delete_transient( $transient );
+	}
+
+	/**
 	 * Checks is a string is a path.
 	 *
 	 * If the path has not been flagged as deleted, the function checks whether the path exists as either a directory or a file.

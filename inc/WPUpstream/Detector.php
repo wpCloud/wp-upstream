@@ -50,6 +50,8 @@ final class Detector {
 	public function check_action( $ret = array(), $data = null ) {
 		$filter = current_filter();
 
+		$monitor = Monitor::instance();
+
 		switch ( $filter ) {
 			case 'upgrader_process_complete':
 				if ( is_array( $data ) && count( $data ) > 0 ) {
@@ -61,7 +63,7 @@ final class Detector {
 							$name = __( 'WordPress', 'wpupstream' );
 							$version_new = $wp_version;
 
-							$this->add_process_action( $mode, $name, $type, $version_new );
+							$monitor->add_process_action( $mode, $name, $type, $version_new );
 						} elseif ( isset( $data['plugins'] ) || isset( $data['themes'] ) ) {
 							$items = isset( $data['themes'] ) ? $data['themes'] : $data['plugins'];
 							foreach ( $items as $item ) {
@@ -70,7 +72,7 @@ final class Detector {
 									$name = $this->get_data_field( 'Name', $item_data );
 									$version_new = $this->get_data_field( 'Version', $item_data );
 
-									$this->add_process_action( $mode, $name, $type, $version_new );
+									$monitor->add_process_action( $mode, $name, $type, $version_new );
 								}
 							}
 						} elseif ( isset( $data['plugin'] ) || isset( $data['theme'] ) ) {
@@ -80,7 +82,7 @@ final class Detector {
 								$name = $this->get_data_field( 'Name', $item_data );
 								$version_new = $this->get_data_field( 'Version', $item_data );
 
-								$this->add_process_action( $mode, $name, $type, $version_new );
+								$monitor->add_process_action( $mode, $name, $type, $version_new );
 							}
 						}
 					}
@@ -88,12 +90,13 @@ final class Detector {
 				break;
 			case 'install_theme_complete_actions':
 			case 'install_plugin_complete_actions':
+				error_log( print_r( $data, true ) );
 				if ( $data !== null ) {
 					$mode = 'install';
 					$type = strpos( $filter, 'theme' ) !== false ? 'theme' : 'plugin';
 					$name = $this->get_data_field( 'Name', $data );
 					$version_new = $this->get_data_field( 'Version', $data );
-					$this->add_process_action( $mode, $name, $type, $version_new );
+					$monitor->add_process_action( $mode, $name, $type, $version_new );
 				}
 				break;
 			case 'load-themes.php':
@@ -106,7 +109,7 @@ final class Detector {
 							$theme_data = $this->get_data( $theme, $type );
 							$name = $this->get_data_field( 'Name', $theme_data );
 
-							$this->add_process_action( $mode, $name, $type );
+							$monitor->add_process_action( $mode, $name, $type );
 						}
 					} elseif ( $_REQUEST['action'] == 'delete-selected' && isset( $_REQUEST['verify-delete'] ) ) {
 						$themes = isset( $_REQUEST['checked'] ) ? (array) $_REQUEST['checked'] : array();
@@ -114,7 +117,7 @@ final class Detector {
 							$theme_data = $this->get_data( $theme, $type );
 							$name = $this->get_data_field( 'Name', $theme_data );
 
-							$this->add_process_action( $mode, $name, $type );
+							$monitor->add_process_action( $mode, $name, $type );
 						}
 					}
 				}
@@ -129,7 +132,7 @@ final class Detector {
 						$plugin_data = $this->get_data( $plugin, $type );
 						$name = $this->get_data_field( 'Name', $plugin_data );
 
-						$this->add_process_action( $mode, $name, $type );
+						$monitor->add_process_action( $mode, $name, $type );
 					}
 				}
 				break;
@@ -137,33 +140,6 @@ final class Detector {
 		}
 
 		return $ret;
-	}
-
-	/**
-	 * Adds a new action to the active process.
-	 *
-	 * @param string $mode either 'install', 'update' or 'delete'
-	 * @param string $item_name the name of the item that has changed
-	 * @param string $item_type the type of the item that has changed (either 'core', 'plugin' or 'theme')
-	 * @param string|null $new_version new version if available
-	 * @param string|null $old_version old version if available
-	 * @return boolean true if the action was added to the active process successfully, otherwise false
-	 */
-	private function add_process_action( $mode, $item_name, $item_type, $new_version = null, $old_version = null ) {
-		$actions = get_transient( 'wpupstream_process_actions' );
-		if ( $actions !== false ) {
-			$actions = json_decode( $actions, true );
-			if ( isset( $actions[ $mode ] ) ) {
-				$actions[ $mode ][] = array(
-					'name'			=> $item_name,
-					'type'			=> $item_type,
-					'version_new'	=> $new_version,
-					'version_old'	=> $old_version,
-				);
-				return set_transient( 'wpupstream_process_actions', json_encode( $actions ) );
-			}
-		}
-		return false;
 	}
 
 	/**

@@ -159,8 +159,8 @@ if ( ! class_exists( 'WP_Upstream_Admin_Bar_Menu' ) ) {
 			) );
 
 			if ( isset( $args['title'] ) ) {
-				if ( strlen( $args['title'] ) > 60 ) {
-					$args['title'] = substr( $args['title'], 0, 60 ) . '...';
+				if ( strlen( $args['title'] ) > 100 ) {
+					$args['title'] = substr( $args['title'], 0, 100 ) . '...';
 				}
 				$args['title'] = $this->status_wrap( $args['title'], $status );
 			}

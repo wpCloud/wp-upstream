@@ -175,6 +175,34 @@ final class Monitor {
 	}
 
 	/**
+	 * Adds a new action to the active process.
+	 *
+	 * This method is called by the Detector class.
+	 *
+	 * @param string $mode either 'install', 'update' or 'delete'
+	 * @param string $item_name the name of the item that has changed
+	 * @param string $item_type the type of the item that has changed (either 'core', 'plugin' or 'theme')
+	 * @param string|null $new_version new version if available
+	 * @param string|null $old_version old version if available
+	 * @return boolean true if the action was added to the active process successfully, otherwise false
+	 */
+	public function add_process_action( $mode, $item_name, $item_type, $new_version = null, $old_version = null ) {
+		$actions = Util::get_transient( 'wpupstream_process_actions', 'array' );
+		if ( $actions !== false ) {
+			if ( isset( $actions[ $mode ] ) ) {
+				$actions[ $mode ][] = array(
+					'name'			=> $item_name,
+					'type'			=> $item_type,
+					'version_new'	=> $new_version,
+					'version_old'	=> $old_version,
+				);
+				return Util::set_transient( 'wpupstream_process_actions', $actions );
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Starts a new process.
 	 *
 	 * @param array $pre_filechanges results of the 'git status' command run immediately before starting the process
@@ -193,9 +221,10 @@ final class Monitor {
 			'delete'		=> array(),
 		) );
 
-		$start_time_status = set_transient( 'wpupstream_process_start_time', current_time( 'timestamp' ) );
-		$pre_filechanges_status = set_transient( 'wpupstream_process_pre_filechanges', json_encode( $pre_filechanges ) );
-		$actions_status = set_transient( 'wpupstream_process_actions', json_encode( $actions ) );
+		$start_time_status = Util::set_transient( 'wpupstream_process_start_time', current_time( 'timestamp' ) );
+		$pre_filechanges_status = Util::set_transient( 'wpupstream_process_pre_filechanges', $pre_filechanges );
+		$actions_status = Util::set_transient( 'wpupstream_process_actions', $actions );
+
 		return $start_time_status && $pre_filechanges_status && $actions_status;
 	}
 
@@ -205,9 +234,9 @@ final class Monitor {
 	 * @return boolean true if a process is active, otherwise false
 	 */
 	private function is_process_active() {
-		$start_time = get_transient( 'wpupstream_process_start_time' );
-		$pre_filechanges = get_transient( 'wpupstream_process_pre_filechanges' );
-		$actions = get_transient( 'wpupstream_process_actions' );
+		$start_time = Util::get_transient( 'wpupstream_process_start_time' );
+		$pre_filechanges = Util::get_transient( 'wpupstream_process_pre_filechanges' );
+		$actions = Util::get_transient( 'wpupstream_process_actions' );
 
 		return $start_time !== false && $pre_filechanges !== false && $actions !== false;
 	}
@@ -218,9 +247,10 @@ final class Monitor {
 	 * @return boolean true if the process could be finished successfully, otherwise false (if no process has been active before, it will return false too)
 	 */
 	private function finish_process() {
-		$start_time_status = delete_transient( 'wpupstream_process_start_time' );
-		$pre_filechanges_status = delete_transient( 'wpupstream_process_pre_filechanges' );
-		$actions_status = delete_transient( 'wpupstream_process_actions' );
+		$start_time_status = Util::delete_transient( 'wpupstream_process_start_time' );
+		$pre_filechanges_status = Util::delete_transient( 'wpupstream_process_pre_filechanges' );
+		$actions_status = Util::delete_transient( 'wpupstream_process_actions' );
+
 		return $start_time_status && $pre_filechanges_status && $actions_status;
 	}
 
@@ -230,7 +260,7 @@ final class Monitor {
 	 * @return int|false timestamp start time or false if no process is active
 	 */
 	private function get_start_time() {
-		return get_transient( 'wpupstream_process_start_time' );
+		return Util::get_transient( 'wpupstream_process_start_time' );
 	}
 
 	/**
@@ -239,11 +269,7 @@ final class Monitor {
 	 * @return array|false filechanges array or false if no process is active
 	 */
 	private function get_pre_filechanges() {
-		$pre_filechanges = get_transient( 'wpupstream_process_pre_filechanges' );
-		if ( $pre_filechanges !== false ) {
-			return json_decode( $pre_filechanges, true );
-		}
-		return false;
+		return Util::get_transient( 'wpupstream_process_pre_filechanges', 'array' );
 	}
 
 	/**
@@ -252,11 +278,7 @@ final class Monitor {
 	 * @return array|false actions array or false if no process is active
 	 */
 	private function get_actions() {
-		$actions = get_transient( 'wpupstream_process_actions' );
-		if ( $actions !== false ) {
-			return json_decode( $actions, true );
-		}
-		return false;
+		return Util::get_transient( 'wpupstream_process_actions', 'array' );
 	}
 
 	/**
@@ -274,11 +296,10 @@ final class Monitor {
 		if ( $auto_update ) {
 			$author_name = __( 'WordPress', 'wpupstream' );
 		} else {
-			$uid = get_current_user_id();
-			if ( $uid > 0 ) {
-				$udata = get_userdata( $uid );
-				$author_name = $udata->display_name;
-				$author_email = $udata->user_email;
+			$current_user = $this->get_current_user();
+			if ( $current_user ) {
+				$author_name = $current_user->display_name;
+				$author_email = $current_user->user_email;
 			}
 		}
 
@@ -312,14 +333,14 @@ final class Monitor {
 	 * @return string the commit message
 	 */
 	private function build_commit_message( $actions, $auto_update = false ) {
-		$initiator = __( 'auto-update', 'wpupstream' );
-		if ( ! $auto_update ) {
-			$uid = get_current_user_id();
-			if ( $uid > 0 ) {
-				$udata = get_userdata( $uid );
-				$initiator = $udata->display_name;
-			} else {
-				$initiator = __( 'unknown user', 'wpupstream' );
+		$initiator = __( 'unknown user', 'wpupstream' );
+
+		if ( $auto_update ) {
+			$initiator = __( 'auto-update', 'wpupstream' );
+		} else {
+			$current_user = $this->get_current_user();
+			if ( $current_user ) {
+				$initiator = $current_user->display_name;
 			}
 		}
 
@@ -344,5 +365,39 @@ final class Monitor {
 		}
 
 		return apply_filters( 'wpupstream_commit_message', sprintf( $action_string, $initiator, implode( ', ', $action_data ) ), $actions, $auto_update );
+	}
+
+	/**
+	 * Gets the current user.
+	 *
+	 * If WP_CLI is being used, its configuration is checked.
+	 * Otherwise the current user as set in WordPress is being used.
+	 *
+	 * @return WP_User|bool either a WP_User object or false if no user could be detected
+	 */
+	private function get_current_user() {
+		$udata = false;
+
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			if ( class_exists( 'WP_CLI' ) ) {
+				$runner = \WP_CLI::get_runner();
+				$config = $runner->config;
+				if ( isset( $config['user'] ) ) {
+					if ( is_numeric( $config['user'] ) ) {
+						$udata = get_user_by( 'id', $config['user'] );
+					} elseif ( is_email( $config['user'] ) ) {
+						$udata = get_user_by( 'email', $config['user'] );
+					} else {
+						$udata = get_user_by( 'login', $config['user'] );
+					}
+				}
+			}
+		}
+
+		if ( ! $udata && function_exists( 'wp_get_current_user' ) ) {
+			$udata = wp_get_current_user();
+		}
+
+		return $udata;
 	}
 }
