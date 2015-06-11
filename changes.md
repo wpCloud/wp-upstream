@@ -1,6 +1,7 @@
 #### 0.1.4
 * fixed theme deletion on multisite
 * improved compatibility with multisite and WP CLI
+* theme information is now retrieved from local files
 * fixed admin bar menu design
 * admin bar menu now has its own class
 
