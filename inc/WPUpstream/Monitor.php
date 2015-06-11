@@ -58,7 +58,8 @@ final class Monitor {
 
 		switch ( $filter ) {
 			case 'load-themes.php':
-				if ( ! ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'delete' && current_user_can( 'delete_themes' ) ) ) {
+				// note: for multisite the action 'delete-selected' is used, for a normal site just 'delete'
+				if ( ! ( isset( $_REQUEST['action'] ) && ( $_REQUEST['action'] == 'delete' || $_REQUEST['action'] == 'delete-selected' && isset( $_REQUEST['verify-delete'] ) ) && current_user_can( 'delete_themes' ) ) ) {
 					return $ret;
 				}
 				break;
@@ -100,12 +101,12 @@ final class Monitor {
 
 		switch ( $filter ) {
 			case 'load-themes.php':
-				if ( ! ( isset( $_REQUEST['deleted'] ) && $_REQUEST['deleted'] == 'true' && current_user_can( 'delete_themes' ) ) ) {
+				if ( ! ( isset( $_REQUEST['deleted'] ) && ( $_REQUEST['deleted'] == 'true' || $_REQUEST['deleted'] == 1 ) && current_user_can( 'delete_themes' ) ) ) {
 					return $ret;
 				}
 				break;
 			case 'load-plugins.php':
-				if ( ! ( isset( $_REQUEST['deleted'] ) && $_REQUEST['deleted'] == 'true' && current_user_can( 'delete_plugins' ) ) ) {
+				if ( ! ( isset( $_REQUEST['deleted'] ) && ( $_REQUEST['deleted'] == 'true' || $_REQUEST['deleted'] == 1 ) && current_user_can( 'delete_plugins' ) ) ) {
 					return $ret;
 				}
 				break;
@@ -168,7 +169,7 @@ final class Monitor {
 	 */
 	public function cleanup_old_process() {
 		$start_time = $this->get_start_time();
-		if ( $start_time !== false && $start_time + 300 < current_time( 'timestamp' ) ) {
+		if ( $start_time !== false && $start_time + 120 < current_time( 'timestamp' ) ) {
 			$this->finish_process();
 		}
 	}

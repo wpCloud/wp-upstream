@@ -337,7 +337,7 @@ final class Git {
 	 */
 	private function get_remote_url() {
 		if ( $this->config['git_dir'] ) {
-			$response = $this->__call( 'config', array( '--get', 'remote.origin.url' ) );
+			$response = $this->exec( 'config', array( '--get', 'remote.origin.url' ) );
 			if ( isset( $response['raw_output'][0] ) ) {
 				return trim( $response['raw_output'][0] );
 			}

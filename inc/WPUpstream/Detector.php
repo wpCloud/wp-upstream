@@ -99,13 +99,23 @@ final class Detector {
 			case 'load-themes.php':
 				$mode = 'delete';
 				$type = 'theme';
-				if ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'delete' && current_user_can( 'delete_themes' ) ) {
-					if ( isset( $_GET['stylesheet'] ) ) {
-						$theme = $_GET['stylesheet'];
-						$theme_data = $this->get_data( $theme, $type, 'local' );
-						$name = $this->get_data_field( 'Name', $theme_data );
+				if ( isset( $_REQUEST['action'] ) && current_user_can( 'delete_themes' ) ) {
+					if ( $_REQUEST['action'] == 'delete' ) {
+						if ( isset( $_GET['stylesheet'] ) ) {
+							$theme = $_GET['stylesheet'];
+							$theme_data = $this->get_data( $theme, $type );
+							$name = $this->get_data_field( 'Name', $theme_data );
 
-						$this->add_process_action( $mode, $name, $type );
+							$this->add_process_action( $mode, $name, $type );
+						}
+					} elseif ( $_REQUEST['action'] == 'delete-selected' && isset( $_REQUEST['verify-delete'] ) ) {
+						$themes = isset( $_REQUEST['checked'] ) ? (array) $_REQUEST['checked'] : array();
+						foreach ( $themes as $theme ) {
+							$theme_data = $this->get_data( $theme, $type );
+							$name = $this->get_data_field( 'Name', $theme_data );
+
+							$this->add_process_action( $mode, $name, $type );
+						}
 					}
 				}
 				break;
@@ -116,7 +126,7 @@ final class Detector {
 					$plugins = isset( $_REQUEST['checked'] ) ? (array) $_REQUEST['checked'] : array();
 					$plugins = array_filter( $plugins, 'is_plugin_inactive' );
 					foreach ( $plugins as $plugin ) {
-						$plugin_data = $this->get_data( $plugin, $type, 'local' );
+						$plugin_data = $this->get_data( $plugin, $type );
 						$name = $this->get_data_field( 'Name', $plugin_data );
 
 						$this->add_process_action( $mode, $name, $type );
@@ -170,13 +180,13 @@ final class Detector {
 		if ( ! empty( $item ) ) {
 			switch ( $type ) {
 				case 'theme':
-					if ( $mode == 'local' ) {
-						if ( function_exists( 'wp_get_theme' ) ) {
-							return wp_get_theme( $item );
-						}
-					} else {
+					if ( $mode == 'api' ) {
 						if ( function_exists( 'themes_api' ) ) {
 							return themes_api( 'theme_information', array( 'slug' => $item, 'fields' => array( 'sections' => false, 'tags' => false ) ) );
+						}
+					} else {
+						if ( function_exists( 'wp_get_theme' ) ) {
+							return wp_get_theme( $item );
 						}
 					}
 					break;
