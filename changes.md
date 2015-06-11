@@ -1,3 +1,6 @@
+#### 0.1.5
+* disabled debug mode by default
+
 #### 0.1.4
 * fixed theme deletion on multisite
 * improved compatibility with multisite and WP CLI
