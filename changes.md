@@ -1,3 +1,7 @@
+#### 0.1.6
+* public release build
+* switched to PSR-4 autoloader
+
 #### 0.1.5
 * disabled debug mode by default
 

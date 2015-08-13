@@ -1,7 +1,7 @@
 <?php
 /**
  * @package WPUpstream
- * @version 0.1.5
+ * @version 0.1.6
  * @author Usability Dynamics Inc.
  */
 
@@ -272,8 +272,8 @@ final class Git {
 			}
 		}
 
-		// log all Git activities
-		if ( ( defined( 'WP_UPSTREAM_DEBUG' ) && WP_UPSTREAM_DEBUG ) || ( defined( 'WP_DEBUG' ) && WP_DEBUG ) ) {
+		// log all Git activities if constant is set
+		if ( ( defined( 'WP_UPSTREAM_DEBUG' ) && WP_UPSTREAM_DEBUG ) ) {
 			$original_log_errors = ini_get( 'log_errors' );
 			$original_error_log = ini_get( 'error_log' );
 			ini_set( 'log_errors', 1 );

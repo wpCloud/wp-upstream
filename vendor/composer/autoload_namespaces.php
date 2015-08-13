@@ -6,6 +6,5 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
-    'WPUpstream\\' => array($baseDir . '/inc'),
     'Composer\\Installers\\' => array($vendorDir . '/composer/installers/src'),
 );

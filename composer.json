@@ -1,7 +1,7 @@
 {
   "name": "wpCloud/wp-upstream",
   "description": "This plugin handles Git automation in WordPress.",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "license": "GPL-2.0",
   "type": "wordpress-plugin",
   "keywords": [
@@ -26,8 +26,8 @@
     "issues": "https://github.com/wpCloud/wp-upstream/issues"
   },
   "autoload": {
-    "psr-0": {
-      "WPUpstream\\": "inc/"
+    "psr-4": {
+      "WPUpstream\\": "inc/WPUpstream/"
     }
   },
   "require": {
