@@ -33,6 +33,11 @@ define( 'WP_UPSTREAM_BASENAME', plugin_basename( __FILE__ ) );
 define( 'WP_UPSTREAM_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
 define( 'WP_UPSTREAM_URL', untrailingslashit( plugin_dir_url( __FILE__ ) ) );
 
+// Automatic push, unless explicitly disabled.
+if( !defined( 'WP_UPSTREAM_AUTOMATIC_PUSH' ) ) {
+	define( 'WP_UPSTREAM_AUTOMATIC_PUSH', true );
+}
+
 function wpupstream() {
 	if ( class_exists( 'WPUpstream\Plugin' ) ) {
 		return WPUpstream\Plugin::instance();
