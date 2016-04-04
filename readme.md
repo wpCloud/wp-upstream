@@ -17,3 +17,11 @@ The current version does not have a settings interface, but there are a few cons
 * `WP_UPSTREAM_REMOTE_NAME` - define this if you need to override the remote name (the default is `origin`, in most cases it should not be changed)
 * `WP_UPSTREAM_AUTOMATIC_PUSH` - define this with boolean `true` if you always want your commits to be pushed immediately (if you do this, make sure to set a remote repository properly; the plugin currently does not check if a push is successful or not)
 * `WP_UPSTREAM_DEBUG` - define this with boolean `true` if you want a log of Git commands to be created
+
+Settings
+--------
+Update wp-config.php with the following to push updates automatically.
+
+```
+define( 'WP_UPSTREAM_AUTOMATIC_PUSH', true );
+```
