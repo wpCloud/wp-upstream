@@ -35,7 +35,11 @@ final class Plugin {
 
 	private function __construct() {
 		$this->git = Git::instance();
-		if ( $this->git->init_config() ) {
+
+    // Initialize udpater.
+    $this->updater = new Updater;
+
+    if ( $this->git->init_config() ) {
 			$this->status = true;
 			$this->monitor = Monitor::instance();
 			$this->detector = Detector::instance();

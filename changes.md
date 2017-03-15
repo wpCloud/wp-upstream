@@ -1,3 +1,7 @@
+#### 0.1.7
+* Added automatic updates from latest build.
+* Enabled [WP_UPSTREAM_AUTOMATIC_PUSH] by default.
+
 #### 0.1.6
 * public release build
 * switched to PSR-4 autoloader
