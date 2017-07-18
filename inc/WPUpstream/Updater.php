@@ -3,8 +3,9 @@
  *
  * - pre_set_site_transient_update_plugins
  * - site_transient_update_plugins - on every run
+ *
+ *    wp transient delete update_plugins
  */
-// wp transient delete update_plugins
 namespace WPUpstream;
 
 class Updater {
@@ -22,7 +23,7 @@ class Updater {
 
     }, 10, 2 );
 
-    if( defined( 'RABBITCI_AUTO_UPDATE' ) && RABBITCI_AUTO_UPDATE ) {
+    if( defined( 'WP_UPSTREAM_AUTO_UPDATE' ) && WP_UPSTREAM_AUTO_UPDATE === true ) {
       add_filter( 'auto_update_plugin', array( 'WPUpstream\Updater', 'auto_update_specific_plugins' ), 10, 2 );
     }
 
@@ -41,11 +42,9 @@ class Updater {
    * @return bool
    */
   static public function auto_update_specific_plugins( $update, $item ) {
-
     // Array of plugin slugs to always auto-update
-    $plugins = array(
-      'wp-upstream'
-    );
+
+    $plugins = array( 'wp-upstream' );
 
     if( in_array( $item->slug, $plugins ) ) {
       return true; // Always update plugins in this array
@@ -156,9 +155,9 @@ class Updater {
       }
 
     }
-
     return $response;
 
   }
+
 
 }
