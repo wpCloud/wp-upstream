@@ -18,7 +18,7 @@
 
 /**
  * @package WPUpstream
- * @version 0.1.7
+ * @version 0.1.8
  * @author Usability Dynamics Inc.
  */
 
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die();
 }
 
-define( 'WP_UPSTREAM_VERSION', '0.1.7' );
+define( 'WP_UPSTREAM_VERSION', '0.1.8' );
 define( 'WP_UPSTREAM_REQUIRED_PHP', '5.3.0' );
 define( 'WP_UPSTREAM_REQUIRED_WP', '4.0' );
 

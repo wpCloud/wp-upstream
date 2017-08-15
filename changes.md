@@ -1,4 +1,7 @@
 #### 0.1.7
+* Fixed problem that wp-upstream constantly thinking their is an updated version.
+
+#### 0.1.7
 * Added automatic updates from latest build.
 * Enabled [WP_UPSTREAM_AUTOMATIC_PUSH] by default.
 
