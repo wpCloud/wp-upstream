@@ -79,7 +79,7 @@ class Updater {
       try {
 
         // Must be able to parse composer.json from plugin file, hopefully to detect the "_build.sha" field.
-        $_composer = json_decode( @file_get_contents( trailingslashit( plugin_dir_path( __DIR__ ) ) . 'composer.json' ) );
+        $_composer = json_decode( @file_get_contents( trailingslashit( plugin_dir_path( __DIR__ ) ) . '../composer.json' ) );
 
         if( is_object( $_composer ) && $_composer->extra && isset( $_composer->extra->_build ) && isset( $_composer->extra->_build->sha ) ) {
           $_version = $_composer->extra->_build->sha;
@@ -102,9 +102,10 @@ class Updater {
 
           if( isset( $_body->data ) ) {
             $_detail[ $_product_name ][ 'response' ] = $_body->data;
-
-            if( !$_body->data->changesSince || $_body->data->changesSince > 0 ) {
-              $_detail[ $_product_name ][ 'have_update' ] = true;
+            if(isset($_version) && isset($_body->data->versionSha) && $_version != $_body->data->versionSha) {
+              if (!$_body->data->changesSince || $_body->data->changesSince > 0) {
+                $_detail[$_product_name]['have_update'] = true;
+              }
             }
 
           } else {
