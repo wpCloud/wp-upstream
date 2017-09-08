@@ -1,4 +1,4 @@
-#### 0.1.7
+#### 0.1.8
 * Fixed problem that wp-upstream constantly thinking their is an updated version.
 
 #### 0.1.7
