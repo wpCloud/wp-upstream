@@ -86,7 +86,7 @@ function wpupstream_maybe_init() {
 		//make it push commits if such exist
 		add_action( 'init', function(){
 			register_shutdown_function(function(){
-				if ( class_exists('\WPUpstream\Util') && \WPUpstream\Util::has_unpushed_commits() ) {
+				if ( function_exists('exec') && class_exists('\WPUpstream\Util') && \WPUpstream\Util::has_unpushed_commits() ) {
 					if ( empty($_POST['action']) || $_POST['action'] != 'delete-plugin' ) exec( 'git push' );
 				}
 			});
