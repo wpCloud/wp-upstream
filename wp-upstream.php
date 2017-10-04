@@ -81,6 +81,17 @@ function wpupstream_maybe_init() {
 	} else {
 		add_action( 'admin_notices', 'wpupstream_display_spl_error_notice' );
 	}
+
+	if ( defined( 'WP_UPSTREAM_AUTOMATIC_PUSH' ) && WP_UPSTREAM_AUTOMATIC_PUSH ) {
+		//make it push commits if such exist
+		add_action( 'init', function(){
+			register_shutdown_function(function(){
+				if ( class_exists('\WPUpstream\Util') && \WPUpstream\Util::has_unpushed_commits() ) {
+					if ( empty($_POST['action']) || $_POST['action'] != 'delete-plugin' ) exec( 'git push' );
+				}
+			});
+		}, 99999 );
+	}
 }
 
 wpupstream_maybe_init();
