@@ -3,7 +3,7 @@
  * Plugin Name: WP-Upstream
  * Plugin URI: http://wordpress.org/plugins/wp-upstream/
  * Description: This plugin handles Git automation in WordPress.
- * Version: 0.1.7
+ * Version: 0.1.8
  * Author: Usability Dynamics Inc.
  * Author URI: http://www.usabilitydynamics.com/
  * License: GNU General Public License v2
@@ -83,11 +83,27 @@ function wpupstream_maybe_init() {
 	}
 
 	if ( defined( 'WP_UPSTREAM_AUTOMATIC_PUSH' ) && WP_UPSTREAM_AUTOMATIC_PUSH ) {
+		
 		//make it push commits if such exist
-		add_action( 'init', function(){
+		add_action( 'admin_init', function(){
+			
+			// do nothing on wp-cli
+			if( defined( 'WP_CLI' ) ) {
+				return;
+			}
+
+			// do nothing if auotmatic push is explicilty disabled via `WP_UPSTREAM_AUTOMATIC_PUSH` constant.
+			if( defined( 'WP_UPSTREAM_AUTOMATIC_PUSH' ) && !WP_UPSTREAM_AUTOMATIC_PUSH ) {
+				return;
+			}
+
 			register_shutdown_function(function(){
 				if ( function_exists('exec') && class_exists('\WPUpstream\Util') && \WPUpstream\Util::has_unpushed_commits() ) {
-					if ( empty($_POST['action']) || $_POST['action'] != 'delete-plugin' ) exec( 'git push' );
+					
+					if ( !isset( $_POST['action'] ) || empty($_POST['action']) || $_POST['action'] !== 'delete-plugin' ) {
+						exec( 'git push' );
+					}
+					
 				}
 			});
 		}, 99999 );
