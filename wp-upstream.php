@@ -82,31 +82,46 @@ function wpupstream_maybe_init() {
 		add_action( 'admin_notices', 'wpupstream_display_spl_error_notice' );
 	}
 
-	if ( defined( 'WP_UPSTREAM_AUTOMATIC_PUSH' ) && WP_UPSTREAM_AUTOMATIC_PUSH ) {
+
+	/**
+	 * Push unpushed but committed changes.
+	 * 
+	 * - avoid pushign changes when somebody is developing
+	 * - perhaps track how long we have unpushed commits 
+	 * 
+	 * 
+	 *		wp transient get wp-upstream:has_unpushed_commits
+	 * 
+	 */
+	function wpupstream_maybe_auto_push(){
 		
-		//make it push commits if such exist
-		add_action( 'admin_init', function(){
+		// do nothing on wp-cli
+		if( defined( 'WP_CLI' ) ) {
+			return;
+		}
+
+		register_shutdown_function(function(){
 			
-			// do nothing on wp-cli
-			if( defined( 'WP_CLI' ) ) {
-				return;
-			}
-
-			// do nothing if auotmatic push is explicilty disabled via `WP_UPSTREAM_AUTOMATIC_PUSH` constant.
-			if( defined( 'WP_UPSTREAM_AUTOMATIC_PUSH' ) && !WP_UPSTREAM_AUTOMATIC_PUSH ) {
-				return;
-			}
-
-			register_shutdown_function(function(){
-				if ( function_exists('exec') && class_exists('\WPUpstream\Util') && \WPUpstream\Util::has_unpushed_commits() ) {
-					
-					if ( !isset( $_POST['action'] ) || empty($_POST['action']) || $_POST['action'] !== 'delete-plugin' ) {
-						exec( 'git push' );
-					}
-					
+			if ( function_exists('exec') && class_exists('\WPUpstream\Util') && \WPUpstream\Util::has_unpushed_commits() ) {
+				
+				if( !get_transient( 'wp-upstream:has_unpushed_commits' ) ) {
+					set_transient('wp-upstream:has_unpushed_commits', time() );
 				}
-			});
-		}, 99999 );
+				
+				if ( !isset( $_POST['action'] ) || empty($_POST['action']) || $_POST['action'] !== 'delete-plugin' ) {
+					exec( 'git push --porcelain' );
+					delete_transient('wp-upstream:has_unpushed_commits');
+				}
+				
+			}
+			
+		});
+	}
+
+	//make it push commits if such exist
+	if ( defined( 'WP_UPSTREAM_AUTOMATIC_PUSH' ) && WP_UPSTREAM_AUTOMATIC_PUSH ) {
+		add_action( 'admin_init', 'wpupstream_maybe_auto_push', 99999 );
+		// add_action( 'wp_login', 'wpupstream_maybe_auto_push', 99999 );
 	}
 }
 
