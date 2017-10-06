@@ -104,13 +104,13 @@ function wpupstream_maybe_init() {
 			
 			if ( function_exists('exec') && class_exists('\WPUpstream\Util') && \WPUpstream\Util::has_unpushed_commits() ) {
 				
-				if( !get_transient( 'wp-upstream:has_unpushed_commits' ) ) {
-					set_transient('wp-upstream:has_unpushed_commits', time() );
+				if( !get_site_transient( 'wp-upstream:has_unpushed_commits' ) ) {
+					get_site_transient('wp-upstream:has_unpushed_commits', time() );
 				}
 				
 				if ( !isset( $_POST['action'] ) || empty($_POST['action']) || $_POST['action'] !== 'delete-plugin' ) {
 					exec( 'git push --porcelain' );
-					delete_transient('wp-upstream:has_unpushed_commits');
+					delete_site_transient('wp-upstream:has_unpushed_commits');
 				}
 				
 			}
