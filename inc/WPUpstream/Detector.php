@@ -24,18 +24,15 @@ final class Detector {
 
 	private function __construct() {
 		add_action( 'upgrader_process_complete', array( $this, 'check_action' ), 10, 2 );
+
 		add_filter( 'install_theme_complete_actions', array( $this, 'check_action' ), 10, 2 );
 		add_filter( 'install_plugin_complete_actions', array( $this, 'check_action' ), 10, 2 );
 
-		// there is no action or filter for deletion, so we need to use the actions below as a workaround
 		add_action( 'load-themes.php', array( $this, 'check_action' ) );
 		add_action( 'load-plugins.php', array( $this, 'check_action' ) );
+		add_action( 'delete_plugin', array( $this, 'check_action' ) );
 
-		// the following filters do not need to be used since 'upgrader_process_complete' already handles their actions
-		//add_filter( 'update_theme_complete_actions', array( $this, 'check_action' ), 10, 2 );
-		//add_filter( 'update_plugin_complete_actions', array( $this, 'check_action' ), 10, 2 );
-		//add_filter( 'update_bulk_theme_complete_actions', array( $this, 'check_action' ), 10, 2 );
-		//add_filter( 'update_bulk_plugins_complete_actions', array( $this, 'check_action' ), 10, 2 );
+		add_action( 'wp_ajax_delete-theme', array( $this, 'check_action' ), 0 );
 	}
 
 	/**
@@ -53,20 +50,52 @@ final class Detector {
 		$monitor = Monitor::instance();
 
 		switch ( $filter ) {
+			case 'wp_ajax_delete-theme':
+				$monitor->add_process_action( 'delete', $_REQUEST['slug'], 'theme' );
+				break;
 			case 'upgrader_process_complete':
 				if ( is_array( $data ) && count( $data ) > 0 ) {
 					if ( isset( $data['action'] ) && isset( $data['type'] ) ) {
 						$mode = $data['action'];
 						$type = $data['type'];
-						if ( $type == 'core' ) {
-							global $wp_version;
-							$name = __( 'WordPress', 'wpupstream' );
-							$version_new = $wp_version;
 
-							$monitor->add_process_action( $mode, $name, $type, $version_new );
-						} elseif ( isset( $data['plugins'] ) || isset( $data['themes'] ) ) {
-							$items = isset( $data['themes'] ) ? $data['themes'] : $data['plugins'];
-							foreach ( $items as $item ) {
+						if ( $mode == 'install' ) {
+							if ( $type == 'plugin' ) {
+								$plugin_installed = get_plugins( str_replace( WP_PLUGIN_DIR, '', $ret->result['remote_destination'] ) );
+								if ( !empty( $plugin_installed ) && is_array( $plugin_installed ) ) {
+									foreach( $plugin_installed as $plugin_data ) {
+										if ( !empty( $plugin_data ) ) {
+											$monitor->add_process_action( $mode, $plugin_data['Name'], $type, $plugin_data['Version'] );
+										}
+									}
+								}
+							} elseif ( $type == 'theme' ) {
+								$all_themes = wp_get_themes();
+								if ( !empty( $all_themes[ $ret->result['destination_name'] ] ) ) {
+									$theme = $all_themes[ $ret->result['destination_name'] ];
+									$monitor->add_process_action( $mode, $theme->name, $type, $theme->version );
+								}
+							}
+						} else {
+							if ( $type == 'core' ) {
+								global $wp_version;
+								$name = __( 'WordPress', 'wpupstream' );
+								$version_new = $wp_version;
+
+								$monitor->add_process_action( $mode, $name, $type, $version_new );
+							} elseif ( isset( $data['plugins'] ) || isset( $data['themes'] ) ) {
+								$items = isset( $data['themes'] ) ? $data['themes'] : $data['plugins'];
+								foreach ( $items as $item ) {
+									if ( ! empty( $item ) ) {
+										$item_data = $this->get_data( $item, $type );
+										$name = $this->get_data_field( 'Name', $item_data );
+										$version_new = $this->get_data_field( 'Version', $item_data );
+
+										$monitor->add_process_action( $mode, $name, $type, $version_new );
+									}
+								}
+							} elseif ( isset( $data['plugin'] ) || isset( $data['theme'] ) ) {
+								$item = isset( $data['theme'] ) ? $data['theme'] : $data['plugin'];
 								if ( ! empty( $item ) ) {
 									$item_data = $this->get_data( $item, $type );
 									$name = $this->get_data_field( 'Name', $item_data );
@@ -74,15 +103,6 @@ final class Detector {
 
 									$monitor->add_process_action( $mode, $name, $type, $version_new );
 								}
-							}
-						} elseif ( isset( $data['plugin'] ) || isset( $data['theme'] ) ) {
-							$item = isset( $data['theme'] ) ? $data['theme'] : $data['plugin'];
-							if ( ! empty( $item ) ) {
-								$item_data = $this->get_data( $item, $type );
-								$name = $this->get_data_field( 'Name', $item_data );
-								$version_new = $this->get_data_field( 'Version', $item_data );
-
-								$monitor->add_process_action( $mode, $name, $type, $version_new );
 							}
 						}
 					}
@@ -135,7 +155,14 @@ final class Detector {
 					}
 				}
 				break;
-			default:
+			case 'delete_plugin':
+				$mode = 'delete';
+				$type = 'plugin';
+				$plugin_data = $this->get_data( $ret, $type );
+				$name = $this->get_data_field( 'Name', $plugin_data );
+				$monitor->add_process_action( $mode, $name, $type );
+				break;
+			default: break;
 		}
 
 		return $ret;

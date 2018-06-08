@@ -39,6 +39,12 @@ final class Monitor {
 		add_action( 'load-plugins.php', array( $this, 'maybe_start_process' ), 1 );
 		add_action( 'load-plugins.php', array( $this, 'maybe_finish_process' ), 100 );
 
+		add_action( 'delete_plugin', array( $this, 'maybe_start_process' ), 1 );
+		add_action( 'deleted_plugin', array( $this, 'maybe_finish_process' ), 100 );
+
+		add_action( 'wp_ajax_delete-theme', array( $this, 'maybe_start_process' ), 0 );
+		add_action( 'delete_site_transient_update_themes', array( $this, 'maybe_finish_process' ), 100 );
+
 		// ensures that a broken process does not prevent the plugin from working
 		add_action( 'admin_init', array( $this, 'cleanup_old_process' ) );
 	}
