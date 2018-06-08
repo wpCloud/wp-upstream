@@ -1,7 +1,7 @@
 <?php
 /**
  * @package WPUpstream
- * @version 0.1.6
+ * @version 0.1.8
  * @author Usability Dynamics Inc.
  */
 

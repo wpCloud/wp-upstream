@@ -4,14 +4,14 @@ Plugin Name:       WP Upstream
 Plugin URI:        http://wordpress.org/plugins/wp-upstream/
 Author URI:        https://www.usabilitydynamics.com/
 Author:            Usability Dynamics Inc.
-Contributors:      usability_dynamics, flixos90, andypotanin
+Contributors:      usability_dynamics, flixos90, andypotanin, Anton Korotkoff
 Requires at least: 4.0 
-Tested up to:      4.2
-Stable tag:        0.1.6
-Version:           0.1.6
+Tested up to:      4.9.6
+Stable tag:        0.1.8
+Version:           0.1.8
 License:           GPL v2 
 License URI:       http://www.gnu.org/licenses/gpl-2.0.html
-Tags:              git, automization, updates, version management
+Tags:              git, automization, updates, version management, commit, push, svn
 
 This plugin will automatically create Git commits for any kind of installation, update or deletion in WordPress.
 
@@ -59,6 +59,9 @@ Set up a new Git repository in your WordPress site's root directory and configur
 WP Upstream is still in an early development version. If you have an idea to improve the plugin, need support or find a bug, you can send us a message via our website or, preferably, visit our [feedback.usabilitydynamics.com](http://feedback.usabilitydynamics.com/forums/314358-wp-upstream) page.
 
 == Changelog ==
+
+= 0.1.8 =
+* fixes to Git automation handling
 
 = 0.1.6 =
 * public release build
