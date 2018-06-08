@@ -4,7 +4,10 @@
   "version": "0.1.8",
   "description": "This plugin handles Git automation in WordPress.",
   "keywords": [
-    "wordpress", "plugin", "git", "automization"
+    "wordpress",
+    "plugin",
+    "git",
+    "automization"
   ],
   "author": {
     "name": "Usability Dynamics Inc.",
@@ -23,7 +26,7 @@
     "url": "git://github.com/wpCloud/wp-upstream.git"
   },
   "bugs": {
-    "url" : "https://github.com/wpCloud/wp-upstream/issues"
+    "url": "https://github.com/wpCloud/wp-upstream/issues"
   },
   "license": {
     "type": "GPL-2.0",
