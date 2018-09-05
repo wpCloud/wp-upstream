@@ -81,7 +81,7 @@ class Updater {
         // Must be able to parse composer.json from plugin file, hopefully to detect the "_build.sha" field.
         $_composer = json_decode( @file_get_contents( trailingslashit( plugin_dir_path( __DIR__ ) ) . '../composer.json' ) );
 
-        if( is_object( $_composer ) && $_composer->extra && isset( $_composer->extra->_build ) && isset( $_composer->extra->_build->sha ) ) {
+        if( is_object( $_composer ) && !empty($_composer->extra) && isset( $_composer->extra->_build ) && isset( $_composer->extra->_build->sha ) ) {
           $_version = $_composer->extra->_build->sha;
         } else {
           $_version = null;
